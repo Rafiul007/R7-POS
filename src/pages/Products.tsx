@@ -1,4 +1,5 @@
-import { Typography, Box, Grid } from '@mui/material';
+import { Typography, Box } from '@mui/material';
+import Grid from '@mui/material/Grid';
 import { ProductCard } from '../components';
 import type { IProduct } from '../types';
 
@@ -72,7 +73,7 @@ export const Products = () => {
 
       <Grid container spacing={3}>
         {sampleProducts.map(product => (
-          <Grid xs={12} sm={6} md={4} lg={3} key={product.id}>
+          <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={product.id}>
             <ProductCard
               product={product}
               onAddToCart={handleAddToCart}
