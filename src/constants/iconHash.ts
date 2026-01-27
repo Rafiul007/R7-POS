@@ -43,4 +43,3 @@ export const iconHash = {
 
 //export iconhash type
 export type IconHashKey = keyof typeof iconHash;
-

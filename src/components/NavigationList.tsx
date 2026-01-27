@@ -6,12 +6,7 @@ import {
   ListItemIcon,
   ListItemText,
 } from '@mui/material';
-import {
-  Home,
-  Inventory,
-  ShoppingCart,
-  Payment,
-} from '@mui/icons-material';
+import { Home, Inventory, ShoppingCart, Payment } from '@mui/icons-material';
 import { useLocation } from 'react-router-dom';
 import { navigationItems } from './navigationConfig';
 
@@ -26,12 +21,14 @@ const iconMap = {
   Payment,
 };
 
-export const NavigationList: React.FC<NavigationListProps> = ({ onNavigate }) => {
+export const NavigationList: React.FC<NavigationListProps> = ({
+  onNavigate,
+}) => {
   const location = useLocation();
 
   return (
     <List>
-      {navigationItems.map((item) => {
+      {navigationItems.map(item => {
         const IconComponent = iconMap[item.iconName as keyof typeof iconMap];
         return (
           <ListItem key={item.text} disablePadding>

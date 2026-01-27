@@ -30,18 +30,23 @@ export const UserMenu: React.FC<UserMenuProps> = ({
     <>
       {/* User Menu Trigger */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Typography variant="body2" sx={{ display: { xs: 'none', sm: 'block' } }}>
+        <Typography
+          variant='body2'
+          sx={{ display: { xs: 'none', sm: 'block' } }}
+        >
           Welcome, User
         </Typography>
         <IconButton
-          size="large"
-          aria-label="account of current user"
-          aria-controls="primary-search-account-menu"
-          aria-haspopup="true"
-          color="inherit"
+          size='large'
+          aria-label='account of current user'
+          aria-controls='primary-search-account-menu'
+          aria-haspopup='true'
+          color='inherit'
           onClick={onMenuOpen}
         >
-          <Avatar sx={{ width: 32, height: 32, bgcolor: theme.palette.primary.main }}>
+          <Avatar
+            sx={{ width: 32, height: 32, bgcolor: theme.palette.primary.main }}
+          >
             <AccountCircle />
           </Avatar>
         </IconButton>
@@ -49,7 +54,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({
 
       {/* User Menu Dropdown */}
       <Menu
-        id="primary-search-account-menu"
+        id='primary-search-account-menu'
         anchorEl={anchorEl}
         anchorOrigin={{
           vertical: 'top',

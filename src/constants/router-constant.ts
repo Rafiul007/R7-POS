@@ -9,4 +9,3 @@ export const ROUTES = {
   SETTINGS: '/settings',
   LOGIN: '/login',
 };
-

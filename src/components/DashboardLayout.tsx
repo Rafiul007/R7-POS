@@ -54,7 +54,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   return (
     <Box sx={{ display: 'flex' }}>
       <AppBar
-        position="fixed"
+        position='fixed'
         sx={{
           width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
           ml: { md: `${DRAWER_WIDTH}px` },
@@ -66,15 +66,15 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       >
         <Toolbar>
           <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
+            color='inherit'
+            aria-label='open drawer'
+            edge='start'
             onClick={handleDrawerToggle}
             sx={{ mr: 2, display: { md: 'none' } }}
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+          <Typography variant='h6' noWrap component='div' sx={{ flexGrow: 1 }}>
             Dashboard
           </Typography>
 
@@ -89,13 +89,13 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       {/* Sidebar */}
       <Box
-        component="nav"
+        component='nav'
         sx={{ width: { md: DRAWER_WIDTH }, flexShrink: { md: 0 } }}
-        aria-label="mailbox folders"
+        aria-label='mailbox folders'
       >
         {/* Mobile drawer */}
         <Drawer
-          variant="temporary"
+          variant='temporary'
           open={mobileOpen}
           onClose={handleDrawerToggle}
           ModalProps={{
@@ -117,7 +117,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
         {/* Desktop drawer */}
         <Drawer
-          variant="permanent"
+          variant='permanent'
           sx={{
             display: { xs: 'none', md: 'block' },
             '& .MuiDrawer-paper': {
@@ -136,7 +136,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       {/* Main content */}
       <Box
-        component="main"
+        component='main'
         sx={{
           flexGrow: 1,
           p: 3,
