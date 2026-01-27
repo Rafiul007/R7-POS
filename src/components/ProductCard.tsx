@@ -20,6 +20,7 @@ export const ProductCard: React.FC<IProductCardProps> = ({
   onAddToCart,
   isInCart = false,
   quantity = 0,
+  isAtStockLimit = false,
 }) => {
   const theme = useTheme();
 
@@ -229,7 +230,7 @@ export const ProductCard: React.FC<IProductCardProps> = ({
           variant='contained'
           fullWidth
           onClick={handleAddToCart}
-          disabled={product.stock === 0}
+          disabled={product.stock === 0 || isAtStockLimit}
           startIcon={isInCart ? <ShoppingCartIcon /> : <AddIcon />}
           sx={{
             backgroundColor: theme.palette.primary.main,
@@ -250,7 +251,11 @@ export const ProductCard: React.FC<IProductCardProps> = ({
             transition: 'all 0.2s ease',
           }}
         >
-          {isInCart
+          {product.stock === 0
+            ? 'Out of Stock'
+            : isAtStockLimit
+            ? 'Stock Limit Reached'
+            : isInCart
             ? `Add More${quantity > 0 ? ` (${quantity})` : ''}`
             : 'Add to Cart'}
         </Button>

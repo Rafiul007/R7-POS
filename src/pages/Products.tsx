@@ -1,7 +1,5 @@
 import { Typography, Box, Grid } from '@mui/material';
-import { ProductCard } from '../components';
-import { useAppDispatch } from '../store/hooks';
-import { addItem } from '../store/cartSlice';
+import { ProductGridItem } from '../components';
 import type { IProduct } from '../types';
 
 // Sample product data for demonstration
@@ -57,12 +55,6 @@ const sampleProducts: IProduct[] = [
 ];
 
 export const Products = () => {
-  const dispatch = useAppDispatch();
-
-  const handleAddToCart = (product: IProduct) => {
-    dispatch(addItem(product));
-  };
-
   return (
     <Box>
       <Typography variant='h4' component='h1' gutterBottom>
@@ -75,14 +67,7 @@ export const Products = () => {
 
       <Grid container spacing={3}>
         {sampleProducts.map(product => (
-          <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={product.id}>
-            <ProductCard
-              product={product}
-              onAddToCart={handleAddToCart}
-              isInCart={false} // Will be updated with real cart state later
-              quantity={0} // Will be updated with real cart state later
-            />
-          </Grid>
+          <ProductGridItem key={product.id} product={product} />
         ))}
       </Grid>
     </Box>

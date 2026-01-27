@@ -1,16 +1,14 @@
 import React from 'react';
-import {
-  Box,
-  Typography,
-  Divider,
-  Avatar,
-  Badge,
-} from '@mui/material';
+import { Box, Typography, Divider, Avatar, Badge } from '@mui/material';
 import { ShoppingCart } from '@mui/icons-material';
 import { useAppSelector } from '../store/hooks';
 import { selectCartTotalItems, selectCartTotalPrice } from '../store/selectors';
 
-export const CartSection: React.FC = () => {
+interface CartSectionProps {
+  onClick?: () => void;
+}
+
+export const CartSection: React.FC<CartSectionProps> = ({ onClick }) => {
   const itemCount = useAppSelector(selectCartTotalItems);
   const totalPrice = useAppSelector(selectCartTotalPrice);
 
@@ -18,6 +16,7 @@ export const CartSection: React.FC = () => {
     <>
       <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.3)', mt: 'auto' }} />
       <Box
+        onClick={onClick}
         sx={{
           p: 2,
           display: 'flex',
@@ -27,11 +26,17 @@ export const CartSection: React.FC = () => {
           borderRadius: 1,
           mx: 1,
           mb: 1,
+          cursor: onClick ? 'pointer' : 'default',
+          transition: 'all 0.2s ease-in-out',
+          '&:hover': onClick ? {
+            backgroundColor: 'rgba(255, 255, 255, 0.2)',
+            transform: 'translateY(-2px)',
+          } : {},
         }}
       >
         <Badge
           badgeContent={itemCount}
-          color="secondary"
+          color='secondary'
           sx={{
             '& .MuiBadge-badge': {
               backgroundColor: '#ff6b6b',
@@ -52,7 +57,7 @@ export const CartSection: React.FC = () => {
 
         <Box sx={{ flex: 1 }}>
           <Typography
-            variant="body2"
+            variant='body2'
             sx={{
               color: 'rgba(255, 255, 255, 0.7)',
               fontSize: '0.75rem',
@@ -61,7 +66,7 @@ export const CartSection: React.FC = () => {
             Cart Total
           </Typography>
           <Typography
-            variant="h6"
+            variant='h6'
             sx={{
               color: 'rgba(255, 255, 255, 0.9)',
               fontWeight: 600,

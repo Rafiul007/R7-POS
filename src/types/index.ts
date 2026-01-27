@@ -27,4 +27,5 @@ export interface IProductCardProps {
   onAddToCart: (product: IProduct) => void;
   isInCart?: boolean;
   quantity?: number;
+  isAtStockLimit?: boolean;
 }
