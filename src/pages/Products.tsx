@@ -1,6 +1,7 @@
-import { Typography, Box } from '@mui/material';
-import Grid from '@mui/material/Grid';
+import { Typography, Box, Grid } from '@mui/material';
 import { ProductCard } from '../components';
+import { useAppDispatch } from '../store/hooks';
+import { addItem } from '../store/cartSlice';
 import type { IProduct } from '../types';
 
 // Sample product data for demonstration
@@ -56,9 +57,10 @@ const sampleProducts: IProduct[] = [
 ];
 
 export const Products = () => {
+  const dispatch = useAppDispatch();
+
   const handleAddToCart = (product: IProduct) => {
-    console.log('Added to cart:', product.name);
-    // TODO: Implement add to cart logic
+    dispatch(addItem(product));
   };
 
   return (
@@ -77,8 +79,8 @@ export const Products = () => {
             <ProductCard
               product={product}
               onAddToCart={handleAddToCart}
-              isInCart={false} // You can manage cart state here
-              quantity={0} // You can track quantity here
+              isInCart={false} // Will be updated with real cart state later
+              quantity={0} // Will be updated with real cart state later
             />
           </Grid>
         ))}
