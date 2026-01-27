@@ -61,7 +61,7 @@ export const ProductCard: React.FC<IProductCardProps> = ({
         }}
       >
         <CardMedia
-          component="img"
+          component='img'
           image={product.image}
           alt={product.name}
           sx={{
@@ -78,15 +78,20 @@ export const ProductCard: React.FC<IProductCardProps> = ({
         {/* Stock Status Indicator */}
         {product.stock !== undefined && product.stock <= 5 && (
           <Chip
-            label={product.stock === 0 ? 'Out of Stock' : `Low Stock: ${product.stock}`}
-            size="small"
+            label={
+              product.stock === 0
+                ? 'Out of Stock'
+                : `Low Stock: ${product.stock}`
+            }
+            size='small'
             sx={{
               position: 'absolute',
               top: 8,
               right: 8,
-              backgroundColor: product.stock === 0
-                ? theme.palette.error.main
-                : theme.palette.warning.main,
+              backgroundColor:
+                product.stock === 0
+                  ? theme.palette.error.main
+                  : theme.palette.warning.main,
               color: theme.palette.primary.contrastText,
               fontSize: '0.7rem',
               fontWeight: 600,
@@ -98,8 +103,8 @@ export const ProductCard: React.FC<IProductCardProps> = ({
         {product.category && (
           <Chip
             label={product.category}
-            size="small"
-            variant="outlined"
+            size='small'
+            variant='outlined'
             sx={{
               position: 'absolute',
               top: 8,
@@ -124,8 +129,8 @@ export const ProductCard: React.FC<IProductCardProps> = ({
       >
         {/* Product Name */}
         <Typography
-          variant="h6"
-          component="h2"
+          variant='h6'
+          component='h2'
           sx={{
             fontWeight: 600,
             fontSize: '1.1rem',
@@ -144,7 +149,7 @@ export const ProductCard: React.FC<IProductCardProps> = ({
         {/* Product Description (if available) */}
         {product.description && (
           <Typography
-            variant="body2"
+            variant='body2'
             sx={{
               color: theme.palette.text.secondary,
               mb: 2,
@@ -162,11 +167,18 @@ export const ProductCard: React.FC<IProductCardProps> = ({
 
         {/* Price Section */}
         <Box sx={{ mt: 'auto', mb: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              flexWrap: 'wrap',
+            }}
+          >
             {product.discountPrice ? (
               <>
                 <Typography
-                  variant="h6"
+                  variant='h6'
                   sx={{
                     fontWeight: 700,
                     color: theme.palette.primary.main,
@@ -176,7 +188,7 @@ export const ProductCard: React.FC<IProductCardProps> = ({
                   {formatPrice(product.discountPrice)}
                 </Typography>
                 <Typography
-                  variant="body2"
+                  variant='body2'
                   sx={{
                     textDecoration: 'line-through',
                     color: theme.palette.text.secondary,
@@ -187,7 +199,7 @@ export const ProductCard: React.FC<IProductCardProps> = ({
                 </Typography>
                 <Chip
                   label={`${Math.round(((product.price - product.discountPrice) / product.price) * 100)}% OFF`}
-                  size="small"
+                  size='small'
                   sx={{
                     backgroundColor: theme.palette.success.main,
                     color: theme.palette.primary.contrastText,
@@ -199,7 +211,7 @@ export const ProductCard: React.FC<IProductCardProps> = ({
               </>
             ) : (
               <Typography
-                variant="h6"
+                variant='h6'
                 sx={{
                   fontWeight: 700,
                   color: theme.palette.primary.main,
@@ -214,7 +226,7 @@ export const ProductCard: React.FC<IProductCardProps> = ({
 
         {/* Add to Cart Button */}
         <Button
-          variant="contained"
+          variant='contained'
           fullWidth
           onClick={handleAddToCart}
           disabled={product.stock === 0}
@@ -240,8 +252,7 @@ export const ProductCard: React.FC<IProductCardProps> = ({
         >
           {isInCart
             ? `Add More${quantity > 0 ? ` (${quantity})` : ''}`
-            : 'Add to Cart'
-          }
+            : 'Add to Cart'}
         </Button>
       </CardContent>
     </Card>
