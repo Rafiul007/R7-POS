@@ -81,7 +81,11 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           textTransform: 'none', // Disable uppercase transformation
-          borderRadius: 8,
+          borderRadius: 0,
+          boxShadow: 'none',
+          '&:hover': {
+            boxShadow: 'none',
+          },
         },
       },
     },
@@ -89,7 +93,14 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-root': {
-            borderRadius: 8,
+            borderRadius: 0,
+            boxShadow: 'none',
+            '& fieldset': {
+              borderRadius: 0,
+            },
+            '&:hover fieldset': {
+              borderColor: 'primary.main',
+            },
           },
         },
       },
@@ -97,13 +108,62 @@ export const theme = createTheme({
     MuiPaper: {
       styleOverrides: {
         root: {
-          borderRadius: 12,
+          borderRadius: 0,
+          boxShadow: 'none',
+          border: '1px solid',
+          borderColor: 'divider',
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 0,
+          boxShadow: 'none',
+          border: '1px solid',
+          borderColor: 'divider',
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          borderRadius: 0,
+        },
+      },
+    },
+    MuiAccordion: {
+      styleOverrides: {
+        root: {
+          borderRadius: 0,
+          boxShadow: 'none',
+          border: '1px solid',
+          borderColor: 'divider',
+          '&:before': {
+            display: 'none',
+          },
+        },
+      },
+    },
+    MuiSwitch: {
+      styleOverrides: {
+        root: {
+          borderRadius: 0,
+        },
+        switchBase: {
+          borderRadius: 0,
+        },
+        thumb: {
+          borderRadius: 0,
+        },
+        track: {
+          borderRadius: 0,
         },
       },
     },
   },
   shape: {
-    borderRadius: 8,
+    borderRadius: 0,
   },
 });
 
