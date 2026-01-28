@@ -67,6 +67,7 @@ export const CartModal: React.FC<CartModalProps> = ({
           backgroundColor: theme.palette.background.paper,
           borderRadius: 0,
           boxShadow: 'none',
+          zIndex: theme.zIndex.modal + 1000000,
         },
       }}
     >

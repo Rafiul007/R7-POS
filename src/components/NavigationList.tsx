@@ -36,14 +36,17 @@ export const NavigationList: React.FC<NavigationListProps> = ({
               selected={location.pathname === item.path}
               onClick={() => onNavigate(item.path)}
               sx={{
+                mx: 1,
+                my: 0.5,
+                borderRadius: 1,
                 '&.Mui-selected': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                  backgroundColor: 'rgba(255,255,255,0.18)',
+                  '& .MuiListItemIcon-root, & .MuiTypography-root': {
+                    fontWeight: 600,
                   },
                 },
                 '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  backgroundColor: 'rgba(255,255,255,0.12)',
                 },
               }}
             >
