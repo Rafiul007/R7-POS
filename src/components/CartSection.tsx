@@ -28,10 +28,12 @@ export const CartSection: React.FC<CartSectionProps> = ({ onClick }) => {
           mb: 1,
           cursor: onClick ? 'pointer' : 'default',
           transition: 'all 0.2s ease-in-out',
-          '&:hover': onClick ? {
-            backgroundColor: 'rgba(255, 255, 255, 0.2)',
-            transform: 'translateY(-2px)',
-          } : {},
+          '&:hover': onClick
+            ? {
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                transform: 'translateY(-2px)',
+              }
+            : {},
         }}
       >
         <Badge

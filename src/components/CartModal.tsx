@@ -58,7 +58,7 @@ export const CartModal: React.FC<CartModalProps> = ({
 
   return (
     <Drawer
-      anchor="right"
+      anchor='right'
       open={open}
       onClose={onClose}
       sx={{
@@ -85,7 +85,7 @@ export const CartModal: React.FC<CartModalProps> = ({
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <ShoppingCartIcon />
-            <Typography variant="h6" fontWeight="bold">
+            <Typography variant='h6' fontWeight='bold'>
               Cart ({cartItems.length})
             </Typography>
           </Box>
@@ -109,16 +109,16 @@ export const CartModal: React.FC<CartModalProps> = ({
               }}
             >
               <ShoppingCartIcon sx={{ fontSize: 64, mb: 2, opacity: 0.5 }} />
-              <Typography variant="h6" color="text.secondary">
+              <Typography variant='h6' color='text.secondary'>
                 Your cart is empty
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant='body2' color='text.secondary'>
                 Add some products to get started
               </Typography>
             </Box>
           ) : (
             <List sx={{ width: '100%' }}>
-              {cartItems.map((item) => (
+              {cartItems.map(item => (
                 <Paper
                   key={item.product.id}
                   elevation={0}
@@ -138,14 +138,21 @@ export const CartModal: React.FC<CartModalProps> = ({
                       {item.product.name.charAt(0)}
                     </Avatar>
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="subtitle1" fontWeight="bold">
+                      <Typography variant='subtitle1' fontWeight='bold'>
                         {item.product.name}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant='body2' color='text.secondary'>
                         SKU: {item.product.sku}
                       </Typography>
-                      <Typography variant="body2" color="primary" fontWeight="bold">
-                        ${(item.product.discountPrice || item.product.price).toFixed(2)}
+                      <Typography
+                        variant='body2'
+                        color='primary'
+                        fontWeight='bold'
+                      >
+                        $
+                        {(
+                          item.product.discountPrice || item.product.price
+                        ).toFixed(2)}
                       </Typography>
                     </Box>
                   </ListItem>
@@ -161,17 +168,22 @@ export const CartModal: React.FC<CartModalProps> = ({
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <IconButton
-                        size="small"
-                        onClick={() => handleQuantityChange(item.product.id, item.quantity - 1)}
-                        color="error"
+                        size='small'
+                        onClick={() =>
+                          handleQuantityChange(
+                            item.product.id,
+                            item.quantity - 1
+                          )
+                        }
+                        color='error'
                         sx={{ border: 1, borderColor: 'divider' }}
                       >
-                        <RemoveIcon fontSize="small" />
+                        <RemoveIcon fontSize='small' />
                       </IconButton>
                       <TextField
-                        size="small"
+                        size='small'
                         value={item.quantity}
-                        onChange={(e) => {
+                        onChange={e => {
                           const value = parseInt(e.target.value) || 0;
                           handleQuantityChange(item.product.id, value);
                         }}
@@ -179,17 +191,30 @@ export const CartModal: React.FC<CartModalProps> = ({
                         sx={{ width: 60 }}
                       />
                       <IconButton
-                        size="small"
-                        onClick={() => handleQuantityChange(item.product.id, item.quantity + 1)}
-                        color="success"
-                        disabled={item.product.stock ? item.quantity >= item.product.stock : false}
+                        size='small'
+                        onClick={() =>
+                          handleQuantityChange(
+                            item.product.id,
+                            item.quantity + 1
+                          )
+                        }
+                        color='success'
+                        disabled={
+                          item.product.stock
+                            ? item.quantity >= item.product.stock
+                            : false
+                        }
                         sx={{ border: 1, borderColor: 'divider' }}
                       >
-                        <AddIcon fontSize="small" />
+                        <AddIcon fontSize='small' />
                       </IconButton>
                     </Box>
-                    <Typography variant="h6" fontWeight="bold">
-                      ${((item.product.discountPrice || item.product.price) * item.quantity).toFixed(2)}
+                    <Typography variant='h6' fontWeight='bold'>
+                      $
+                      {(
+                        (item.product.discountPrice || item.product.price) *
+                        item.quantity
+                      ).toFixed(2)}
                     </Typography>
                   </Box>
                 </Paper>
@@ -202,20 +227,24 @@ export const CartModal: React.FC<CartModalProps> = ({
         {cartItems.length > 0 && (
           <Box sx={{ p: 2, borderTop: '1px solid rgba(0,0,0,0.1)' }}>
             <Box sx={{ mb: 2 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+              <Box
+                sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}
+              >
                 <Typography>Subtotal:</Typography>
                 <Typography>${subtotal.toFixed(2)}</Typography>
               </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+              <Box
+                sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}
+              >
                 <Typography>VAT (10%):</Typography>
                 <Typography>${vat.toFixed(2)}</Typography>
               </Box>
               <Divider sx={{ my: 1 }} />
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="h6" fontWeight="bold">
+                <Typography variant='h6' fontWeight='bold'>
                   Total:
                 </Typography>
-                <Typography variant="h6" fontWeight="bold" color="primary">
+                <Typography variant='h6' fontWeight='bold' color='primary'>
                   ${total.toFixed(2)}
                 </Typography>
               </Box>
@@ -225,8 +254,8 @@ export const CartModal: React.FC<CartModalProps> = ({
             <Box sx={{ mb: 2 }}>
               <Button
                 fullWidth
-                variant="outlined"
-                color="error"
+                variant='outlined'
+                color='error'
                 onClick={handleClearCart}
                 sx={{ py: 1 }}
               >
@@ -238,7 +267,7 @@ export const CartModal: React.FC<CartModalProps> = ({
             <Box sx={{ display: 'flex', gap: 1 }}>
               <Button
                 fullWidth
-                variant="outlined"
+                variant='outlined'
                 onClick={onClose}
                 sx={{ py: 1.5 }}
               >
@@ -246,7 +275,7 @@ export const CartModal: React.FC<CartModalProps> = ({
               </Button>
               <Button
                 fullWidth
-                variant="contained"
+                variant='contained'
                 onClick={onProceedToPayment}
                 startIcon={<PaymentIcon />}
                 sx={{ py: 1.5 }}

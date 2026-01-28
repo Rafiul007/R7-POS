@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Toolbar, Typography, Divider } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import { NavigationList } from './NavigationList';
 import { CartSection } from './CartSection';
 import { CartModal } from './CartModal';
@@ -9,6 +10,7 @@ interface DrawerContentProps {
 }
 
 export const DrawerContent: React.FC<DrawerContentProps> = ({ onNavigate }) => {
+  const navigate = useNavigate();
   const [cartModalOpen, setCartModalOpen] = useState(false);
 
   const handleCartClick = () => {
@@ -20,8 +22,7 @@ export const DrawerContent: React.FC<DrawerContentProps> = ({ onNavigate }) => {
   };
 
   const handleProceedToPayment = () => {
-    // TODO: Navigate to payment page
-    console.log('Proceeding to payment...');
+    navigate('/cart-payment');
     setCartModalOpen(false);
   };
 

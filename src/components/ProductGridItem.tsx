@@ -10,12 +10,20 @@ interface ProductGridItemProps {
   product: IProduct;
 }
 
-export const ProductGridItem: React.FC<ProductGridItemProps> = ({ product }) => {
+export const ProductGridItem: React.FC<ProductGridItemProps> = ({
+  product,
+}) => {
   const dispatch = useAppDispatch();
-  const isInCart = useAppSelector(state => selectIsProductInCart(state, product.id));
-  const cartItem = useAppSelector(state => selectCartItemById(state, product.id));
+  const isInCart = useAppSelector(state =>
+    selectIsProductInCart(state, product.id)
+  );
+  const cartItem = useAppSelector(state =>
+    selectCartItemById(state, product.id)
+  );
   const currentQuantity = cartItem?.quantity || 0;
-  const isAtStockLimit = product.stock ? currentQuantity >= product.stock : false;
+  const isAtStockLimit = product.stock
+    ? currentQuantity >= product.stock
+    : false;
 
   const handleAddToCart = (product: IProduct) => {
     dispatch(addItem(product));

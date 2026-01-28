@@ -43,7 +43,6 @@ export const ProductCard: React.FC<IProductCardProps> = ({
         display: 'flex',
         flexDirection: 'column',
         borderRadius: 0,
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
         transition: 'all 0.3s ease',
         '&:hover': {
           boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
@@ -254,10 +253,10 @@ export const ProductCard: React.FC<IProductCardProps> = ({
           {product.stock === 0
             ? 'Out of Stock'
             : isAtStockLimit
-            ? 'Stock Limit Reached'
-            : isInCart
-            ? `Add More${quantity > 0 ? ` (${quantity})` : ''}`
-            : 'Add to Cart'}
+              ? 'Stock Limit Reached'
+              : isInCart
+                ? `Add More${quantity > 0 ? ` (${quantity})` : ''}`
+                : 'Add to Cart'}
         </Button>
       </CardContent>
     </Card>
