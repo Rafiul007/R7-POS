@@ -1,21 +1,27 @@
 import React, { useState } from 'react';
 import {
-  Box,
-  Drawer,
   AppBar,
+  Box,
+  CssBaseline,
+  Drawer,
+  IconButton,
   Toolbar,
   Typography,
-  IconButton,
-  useTheme,
   useMediaQuery,
+  useTheme,
 } from '@mui/material';
-import { Menu as MenuIcon } from '@mui/icons-material';
+import MenuIcon from '@mui/icons-material/Menu';
 import { useNavigate } from 'react-router-dom';
-import type { ReactNode } from 'react';
-import { UserMenu, DrawerContent, DRAWER_WIDTH } from './index';
+
+import { DrawerContent } from './DrawerContent';
+import { UserMenu } from './UserMenu';
+import { useAuth } from '../auth';
+
+const DRAWER_WIDTH = 260;
+const APP_BAR_HEIGHT = 64;
 
 interface DashboardLayoutProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
@@ -23,130 +29,122 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const navigate = useNavigate();
 
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
+  const toggleDrawer = () => setMobileOpen(prev => !prev);
 
-  const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleProfileMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleLogout = () => {
-    handleProfileMenuClose();
-    // TODO: Implement logout logic
-  };
-
-  const handleNavigation = (path: string) => {
+  /**
+   * 🔑 SINGLE SOURCE OF TRUTH FOR NAVIGATION
+   */
+  const handleNavigate = (path: string) => {
     navigate(path);
     if (isMobile) {
       setMobileOpen(false);
     }
   };
 
+  const handleLogout = () => {
+    logout();
+    setAnchorEl(null);
+    navigate('/login');
+  };
+
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', height: '100vh', width: '100vw' }}>
+      <CssBaseline />
+
+      {/* ───────────── TOP APP BAR ───────────── */}
       <AppBar
         position='fixed'
         sx={{
-          width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
-          ml: { md: `${DRAWER_WIDTH}px` },
-          background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 50%, ${theme.palette.primary.light} 100%)`,
-          color: theme.palette.primary.contrastText,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-          borderRadius: 0,
+          height: APP_BAR_HEIGHT,
+          background: `linear-gradient(
+            135deg,
+            ${theme.palette.primary.dark},
+            ${theme.palette.primary.main}
+          )`,
         }}
       >
-        <Toolbar>
-          <IconButton
-            color='inherit'
-            aria-label='open drawer'
-            edge='start'
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { md: 'none' } }}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Typography variant='h6' noWrap component='div' sx={{ flexGrow: 1 }}>
-            Dashboard
+        <Toolbar sx={{ minHeight: APP_BAR_HEIGHT }}>
+          {isMobile && (
+            <IconButton
+              color='inherit'
+              edge='start'
+              onClick={toggleDrawer}
+              sx={{ mr: 2 }}
+            >
+              <MenuIcon />
+            </IconButton>
+          )}
+
+          <Typography variant='h6' sx={{ flexGrow: 1, fontWeight: 600 }}>
+            R7-POS
           </Typography>
 
           <UserMenu
             anchorEl={anchorEl}
-            onMenuOpen={handleProfileMenuOpen}
-            onMenuClose={handleProfileMenuClose}
+            onMenuOpen={e => setAnchorEl(e.currentTarget)}
+            onMenuClose={() => setAnchorEl(null)}
             onLogout={handleLogout}
           />
         </Toolbar>
       </AppBar>
 
-      {/* Sidebar */}
-      <Box
-        component='nav'
-        sx={{ width: { md: DRAWER_WIDTH }, flexShrink: { md: 0 } }}
-        aria-label='mailbox folders'
-      >
-        {/* Mobile drawer */}
+      {/* ───────────── SIDEBAR ───────────── */}
+      <Box component='nav' sx={{ width: { md: DRAWER_WIDTH }, flexShrink: 0 }}>
+        {/* Mobile Drawer */}
         <Drawer
           variant='temporary'
           open={mobileOpen}
-          onClose={handleDrawerToggle}
-          ModalProps={{
-            keepMounted: true, // Better open performance on mobile.
-          }}
+          onClose={toggleDrawer}
+          ModalProps={{ keepMounted: true }}
           sx={{
             display: { xs: 'block', md: 'none' },
             '& .MuiDrawer-paper': {
-              boxSizing: 'border-box',
               width: DRAWER_WIDTH,
-              background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 50%, ${theme.palette.primary.light} 100%)`,
-              color: theme.palette.primary.contrastText,
-              borderRadius: 0,
+              background: `linear-gradient(180deg, #1976d2, #2196f3)`,
+              color: '#fff',
             },
           }}
         >
-          <DrawerContent onNavigate={handleNavigation} />
+          <DrawerContent onNavigate={handleNavigate} />
         </Drawer>
 
-        {/* Desktop drawer */}
+        {/* Desktop Drawer */}
         <Drawer
           variant='permanent'
+          open
           sx={{
             display: { xs: 'none', md: 'block' },
             '& .MuiDrawer-paper': {
-              boxSizing: 'border-box',
               width: DRAWER_WIDTH,
-              background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 50%, ${theme.palette.primary.light} 100%)`,
-              color: theme.palette.primary.contrastText,
-              borderRadius: 0,
+              top: APP_BAR_HEIGHT,
+              height: `calc(100% - ${APP_BAR_HEIGHT}px)`,
+              background: `linear-gradient(180deg, #1976d2, #2196f3)`,
+              color: '#fff',
+              borderRight: 'none',
             },
           }}
-          open
         >
-          <DrawerContent onNavigate={handleNavigation} />
+          <DrawerContent onNavigate={handleNavigate} />
         </Drawer>
       </Box>
 
-      {/* Main content */}
+      {/* ───────────── MAIN CONTENT ───────────── */}
       <Box
         component='main'
         sx={{
           flexGrow: 1,
-          p: 3,
-          width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
-          minHeight: '100vh',
-          backgroundColor: theme.palette.background.default,
+          mt: `${APP_BAR_HEIGHT}px`,
+          height: `calc(100vh - ${APP_BAR_HEIGHT}px)`,
           overflow: 'auto',
+          backgroundColor: theme.palette.background.default,
         }}
       >
-        <Toolbar /> {/* This creates space for the fixed AppBar */}
         {children}
       </Box>
     </Box>

@@ -1,4 +1,3 @@
-export { Layout } from './Layout';
 export { DashboardLayout } from './DashboardLayout';
 export { UserMenu } from './UserMenu';
 export { NavigationList } from './NavigationList';

@@ -1,4 +1,4 @@
-// Product interfaces for POS system
+// Product interfaces for R7-POS
 
 export interface IProduct {
   id: string;

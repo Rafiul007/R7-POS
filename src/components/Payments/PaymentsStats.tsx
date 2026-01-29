@@ -1,0 +1,109 @@
+import { Box, Paper, Typography, Stack } from '@mui/material';
+import {
+  Payment,
+  CheckCircle,
+  Schedule,
+  ErrorOutline,
+} from '@mui/icons-material';
+import { alpha, useTheme } from '@mui/material/styles';
+
+interface PaymentsStatsProps {
+  totalPayments: number;
+  paidPayments: number;
+  pendingPayments: number;
+  failedPayments: number;
+}
+
+const StatCard = ({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: number;
+}) => {
+  const theme = useTheme();
+
+  return (
+    <Paper
+      sx={{
+        p: 2.5,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 2,
+        borderLeft: 'none',
+        borderColor: 'divider',
+        backgroundColor: 'transparent',
+        transition: 'transform 0.25s ease, border-color 0.25s ease',
+        '& .MuiTypography-root': {
+          fontFamily: '"Space Grotesk", "Helvetica", "Arial", sans-serif',
+        },
+        '&:hover': {
+          transform: 'translateY(-3px)',
+          borderColor: 'text.primary',
+        },
+      }}
+    >
+      <Box
+        sx={{
+          p: 1.25,
+          backgroundColor: alpha(theme.palette.primary.main, 0.08),
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Icon sx={{ color: theme.palette.primary.main, fontSize: '1.3rem' }} />
+      </Box>
+      <Stack spacing={0.25} sx={{ flex: 1 }}>
+        <Typography
+          variant='overline'
+          sx={{
+            letterSpacing: '0.18em',
+            color: 'text.secondary',
+            fontWeight: 600,
+          }}
+        >
+          {label}
+        </Typography>
+        <Typography
+          variant='h5'
+          fontWeight={600}
+          sx={{ color: 'text.primary' }}
+        >
+          {value}
+        </Typography>
+      </Stack>
+    </Paper>
+  );
+};
+
+export const PaymentsStats = ({
+  totalPayments,
+  paidPayments,
+  pendingPayments,
+  failedPayments,
+}: PaymentsStatsProps) => {
+  return (
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: {
+          xs: '1fr',
+          sm: 'repeat(2, 1fr)',
+          md: 'repeat(4, 1fr)',
+        },
+        gap: 2,
+      }}
+    >
+      <StatCard icon={Payment} label='Total Payments' value={totalPayments} />
+      <StatCard icon={CheckCircle} label='Paid' value={paidPayments} />
+      <StatCard icon={Schedule} label='Pending' value={pendingPayments} />
+      <StatCard icon={ErrorOutline} label='Failed' value={failedPayments} />
+    </Box>
+  );
+};

@@ -7,6 +7,7 @@ import {
   Button,
   Box,
   Chip,
+  Stack,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { iconHash } from '../constants/iconHash';
@@ -38,26 +39,32 @@ export const ProductCard: React.FC<IProductCardProps> = ({
   return (
     <Card
       sx={{
-        maxWidth: 280,
+        maxWidth: 220,
+        width: '100%',
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
         borderRadius: 0,
-        transition: 'all 0.3s ease',
-        '&:hover': {
-          boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
-          transform: 'translateY(-2px)',
-        },
+        borderColor: 'divider',
         backgroundColor: theme.palette.background.paper,
+        '& .MuiTypography-root': {
+          fontFamily: '"Space Grotesk", "Helvetica", "Arial", sans-serif',
+        },
+        transition: 'transform 0.25s ease, border-color 0.25s ease',
+        '&:hover': {
+          borderColor: theme.palette.text.primary,
+          transform: 'translateY(-4px)',
+        },
       }}
     >
-      {/* Product Image with Zoom Effect */}
       <Box
         sx={{
           position: 'relative',
           overflow: 'hidden',
-          height: 200,
-          borderRadius: 0,
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          aspectRatio: '4 / 3',
+          backgroundColor: theme.palette.grey[100],
         }}
       >
         <CardMedia
@@ -68,55 +75,12 @@ export const ProductCard: React.FC<IProductCardProps> = ({
             width: '100%',
             height: '100%',
             objectFit: 'cover',
-            transition: 'transform 0.3s ease',
+            transition: 'transform 0.35s ease',
             '&:hover': {
-              transform: 'scale(1.1)',
+              transform: 'scale(1.04)',
             },
           }}
         />
-
-        {/* Stock Status Indicator */}
-        {product.stock !== undefined && product.stock <= 5 && (
-          <Chip
-            label={
-              product.stock === 0
-                ? 'Out of Stock'
-                : `Low Stock: ${product.stock}`
-            }
-            size='small'
-            sx={{
-              position: 'absolute',
-              top: 8,
-              right: 8,
-              backgroundColor:
-                product.stock === 0
-                  ? theme.palette.error.main
-                  : theme.palette.warning.main,
-              color: theme.palette.primary.contrastText,
-              fontSize: '0.7rem',
-              fontWeight: 600,
-            }}
-          />
-        )}
-
-        {/* Category Badge */}
-        {product.category && (
-          <Chip
-            label={product.category}
-            size='small'
-            variant='outlined'
-            sx={{
-              position: 'absolute',
-              top: 8,
-              left: 8,
-              backgroundColor: 'rgba(255, 255, 255, 0.9)',
-              borderColor: theme.palette.primary.main,
-              color: theme.palette.primary.main,
-              fontSize: '0.7rem',
-              fontWeight: 600,
-            }}
-          />
-        )}
       </Box>
 
       <CardContent
@@ -125,64 +89,91 @@ export const ProductCard: React.FC<IProductCardProps> = ({
           display: 'flex',
           flexDirection: 'column',
           p: 2,
+          gap: 1.5,
         }}
       >
-        {/* Product Name */}
-        <Typography
-          variant='h6'
-          component='h2'
-          sx={{
-            fontWeight: 600,
-            fontSize: '1.1rem',
-            mb: 1,
-            color: theme.palette.text.primary,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-          }}
-        >
-          {product.name}
-        </Typography>
+        <Stack spacing={0.75}>
+          {product.category && (
+            <Typography
+              variant='overline'
+              sx={{
+                letterSpacing: '0.18em',
+                color: 'text.secondary',
+                fontWeight: 600,
+              }}
+            >
+              {product.category}
+            </Typography>
+          )}
+          <Typography
+            variant='h6'
+            component='h2'
+            sx={{
+              fontWeight: 500,
+              fontSize: '1.05rem',
+              color: theme.palette.text.primary,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+            }}
+          >
+            {product.name}
+          </Typography>
+        </Stack>
 
-        {/* Product Description (if available) */}
         {product.description && (
           <Typography
             variant='body2'
             sx={{
               color: theme.palette.text.secondary,
-              mb: 2,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               display: '-webkit-box',
               WebkitLineClamp: 2,
               WebkitBoxOrient: 'vertical',
               fontSize: '0.85rem',
+              lineHeight: 1.5,
             }}
           >
             {product.description}
           </Typography>
         )}
 
-        {/* Price Section */}
-        <Box sx={{ mt: 'auto', mb: 2 }}>
-          <Box
+        {product.stock !== undefined && (
+          <Typography
+            variant='caption'
             sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-              flexWrap: 'wrap',
+              color:
+                product.stock === 0
+                  ? theme.palette.error.main
+                  : product.stock <= 5
+                    ? theme.palette.warning.main
+                    : theme.palette.text.secondary,
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.12em',
             }}
           >
+            {product.stock === 0
+              ? 'Out of stock'
+              : product.stock <= 5
+                ? `Low stock · ${product.stock} left`
+                : 'In stock'}
+          </Typography>
+        )}
+
+        <Box sx={{ mt: 'auto' }}>
+          <Stack direction='row' spacing={1} alignItems='center'>
             {product.discountPrice ? (
               <>
                 <Typography
                   variant='h6'
                   sx={{
-                    fontWeight: 700,
-                    color: theme.palette.primary.main,
-                    fontSize: '1.2rem',
+                    fontWeight: 600,
+                    color: theme.palette.text.primary,
+                    fontSize: '1.1rem',
                   }}
                 >
                   {formatPrice(product.discountPrice)}
@@ -192,17 +183,19 @@ export const ProductCard: React.FC<IProductCardProps> = ({
                   sx={{
                     textDecoration: 'line-through',
                     color: theme.palette.text.secondary,
-                    fontSize: '0.9rem',
+                    fontSize: '0.85rem',
                   }}
                 >
                   {formatPrice(product.price)}
                 </Typography>
                 <Chip
-                  label={`${Math.round(((product.price - product.discountPrice) / product.price) * 100)}% OFF`}
+                  label={`${Math.round(((product.price - product.discountPrice) / product.price) * 100)}% off`}
                   size='small'
                   sx={{
-                    backgroundColor: theme.palette.success.main,
-                    color: theme.palette.primary.contrastText,
+                    backgroundColor: 'transparent',
+                    border: '1px solid',
+                    borderColor: theme.palette.divider,
+                    color: theme.palette.text.secondary,
                     fontSize: '0.7rem',
                     fontWeight: 600,
                     height: 20,
@@ -213,39 +206,36 @@ export const ProductCard: React.FC<IProductCardProps> = ({
               <Typography
                 variant='h6'
                 sx={{
-                  fontWeight: 700,
-                  color: theme.palette.primary.main,
-                  fontSize: '1.2rem',
+                  fontWeight: 600,
+                  color: theme.palette.text.primary,
+                  fontSize: '1.1rem',
                 }}
               >
                 {formatPrice(product.price)}
               </Typography>
             )}
-          </Box>
+          </Stack>
         </Box>
 
-        {/* Add to Cart Button */}
         <Button
-          variant='contained'
+          variant='outlined'
           fullWidth
           onClick={handleAddToCart}
           disabled={product.stock === 0 || isAtStockLimit}
           startIcon={isInCart ? <ShoppingCartIcon /> : <AddIcon />}
           sx={{
-            backgroundColor: theme.palette.primary.main,
-            color: theme.palette.primary.contrastText,
             borderRadius: 0,
             fontWeight: 600,
             textTransform: 'none',
-            py: 1.5,
+            py: 1.25,
+            fontFamily: '"Space Grotesk", "Helvetica", "Arial", sans-serif',
             '&:hover': {
-              backgroundColor: theme.palette.primary.dark,
-              transform: 'translateY(-1px)',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              backgroundColor: theme.palette.text.primary,
+              color: theme.palette.background.paper,
             },
             '&:disabled': {
-              backgroundColor: theme.palette.grey[400],
-              color: theme.palette.grey[600],
+              borderColor: theme.palette.divider,
+              color: theme.palette.text.disabled,
             },
             transition: 'all 0.2s ease',
           }}
