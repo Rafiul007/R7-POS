@@ -30,7 +30,7 @@ export const ProductGridItem: React.FC<ProductGridItemProps> = ({
   };
 
   return (
-    <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
+    <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
       <ProductCard
         product={product}
         onAddToCart={handleAddToCart}

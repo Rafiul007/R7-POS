@@ -7,36 +7,61 @@ import {
   Paper,
   Chip,
 } from '@mui/material';
+import { Visibility, Replay } from '@mui/icons-material';
 import { alpha } from '@mui/material/styles';
-import { Edit, Delete, MoreVert } from '@mui/icons-material';
 import {
   MaterialReactTable,
   useMaterialReactTable,
   type MRT_ColumnDef,
 } from 'material-react-table';
-import type { IProduct } from '../../types';
 
-interface InventoryTableProps {
-  data: IProduct[];
-  isLoading?: boolean;
-  onEdit?: (product: IProduct) => void;
-  onDelete?: (product: IProduct) => void;
-  onMore?: (product: IProduct) => void;
+export interface PaymentRecord {
+  id: string;
+  reference: string;
+  customer: string;
+  method: 'card' | 'cash' | 'bank' | 'wallet';
+  status: 'paid' | 'pending' | 'failed' | 'refunded';
+  amount: number;
+  date: string;
 }
 
-export const InventoryTable = ({
+interface PaymentsTableProps {
+  data: PaymentRecord[];
+  isLoading?: boolean;
+  onView?: (payment: PaymentRecord) => void;
+  onRefund?: (payment: PaymentRecord) => void;
+}
+
+const formatMethod = (value: PaymentRecord['method']) => {
+  switch (value) {
+    case 'card':
+      return 'Card';
+    case 'cash':
+      return 'Cash';
+    case 'bank':
+      return 'Bank Transfer';
+    case 'wallet':
+      return 'Wallet';
+    default:
+      return value;
+  }
+};
+
+const formatStatus = (value: PaymentRecord['status']) =>
+  value.charAt(0).toUpperCase() + value.slice(1);
+
+export const PaymentsTable = ({
   data,
   isLoading = false,
-  onEdit,
-  onDelete,
-  onMore,
-}: InventoryTableProps) => {
-  const columns = useMemo<MRT_ColumnDef<IProduct>[]>(
+  onView,
+  onRefund,
+}: PaymentsTableProps) => {
+  const columns = useMemo<MRT_ColumnDef<PaymentRecord>[]>(
     () => [
       {
-        accessorKey: 'sku',
-        header: 'SKU',
-        size: 100,
+        accessorKey: 'reference',
+        header: 'Reference',
+        size: 130,
         Cell: ({ cell }) => (
           <Typography
             variant='body2'
@@ -48,9 +73,9 @@ export const InventoryTable = ({
         ),
       },
       {
-        accessorKey: 'name',
-        header: 'Product Name',
-        size: 250,
+        accessorKey: 'customer',
+        header: 'Customer',
+        size: 220,
         Cell: ({ cell }) => (
           <Typography variant='body2' fontWeight={500}>
             {cell.getValue<string>()}
@@ -58,12 +83,12 @@ export const InventoryTable = ({
         ),
       },
       {
-        accessorKey: 'category',
-        header: 'Category',
-        size: 150,
+        accessorKey: 'method',
+        header: 'Method',
+        size: 140,
         Cell: ({ cell }) => (
           <Chip
-            label={cell.getValue<string>() || 'N/A'}
+            label={formatMethod(cell.getValue<PaymentRecord['method']>())}
             size='small'
             variant='outlined'
             sx={{
@@ -79,8 +104,8 @@ export const InventoryTable = ({
         ),
       },
       {
-        accessorKey: 'price',
-        header: 'Price',
+        accessorKey: 'amount',
+        header: 'Amount',
         size: 120,
         Cell: ({ cell }) => (
           <Typography variant='body2' fontWeight={600} color='text.primary'>
@@ -89,86 +114,62 @@ export const InventoryTable = ({
         ),
       },
       {
-        accessorKey: 'stock',
-        header: 'Stock',
-        size: 100,
-        Cell: ({ cell }) => {
-          const value = cell.getValue<number>();
-
-          return (
-            <Chip
-              label={value.toString()}
-              size='small'
-              variant='outlined'
-              sx={{
-                borderRadius: 0,
-                fontWeight: 700,
-                borderColor: 'divider',
-                color: 'primary.main',
-              }}
-            />
-          );
-        },
+        accessorKey: 'status',
+        header: 'Status',
+        size: 120,
+        Cell: ({ cell }) => (
+          <Chip
+            label={formatStatus(cell.getValue<PaymentRecord['status']>())}
+            size='small'
+            variant='outlined'
+            sx={{
+              borderRadius: 0,
+              fontWeight: 600,
+              borderColor: 'divider',
+              color: 'primary.main',
+            }}
+          />
+        ),
       },
       {
-        accessorKey: 'isActive',
-        header: 'Status',
-        size: 110,
-        Cell: ({ cell }) => {
-          const isActive = cell.getValue<boolean>();
-          return (
-            <Chip
-              label={isActive ? 'Active' : 'Inactive'}
-              size='small'
-              variant='outlined'
-              sx={{
-                borderRadius: 0,
-                fontWeight: 600,
-                borderColor: 'divider',
-                color: isActive ? 'primary.main' : 'text.secondary',
-              }}
-            />
-          );
-        },
+        accessorKey: 'date',
+        header: 'Date',
+        size: 140,
+        Cell: ({ cell }) => (
+          <Typography variant='body2' color='text.secondary'>
+            {cell.getValue<string>()}
+          </Typography>
+        ),
       },
       {
         id: 'actions',
         header: 'Actions',
-        size: 140,
+        size: 120,
         Cell: ({ row }) => (
           <Stack direction='row' spacing={0.5}>
-            <Tooltip title='Edit'>
+            <Tooltip title='View'>
               <IconButton
                 size='small'
-                onClick={() => onEdit?.(row.original)}
+                onClick={() => onView?.(row.original)}
                 sx={{ color: 'primary.main' }}
               >
-                <Edit fontSize='small' />
+                <Visibility fontSize='small' />
               </IconButton>
             </Tooltip>
-            <Tooltip title='Delete'>
+            <Tooltip title='Refund'>
               <IconButton
                 size='small'
-                onClick={() => onDelete?.(row.original)}
+                onClick={() => onRefund?.(row.original)}
                 sx={{ color: 'error.main' }}
               >
-                <Delete fontSize='small' />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title='More'>
-              <IconButton
-                size='small'
-                onClick={() => onMore?.(row.original)}
-                sx={{ color: 'primary.main' }}
-              >
-                <MoreVert fontSize='small' />
+                <Replay fontSize='small' />
               </IconButton>
             </Tooltip>
           </Stack>
         ),
       },
     ],
-    [onEdit, onDelete, onMore]
+    [onRefund, onView]
   );
 
   const table = useMaterialReactTable({

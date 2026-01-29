@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Box, Typography, IconButton, Tooltip } from '@mui/material';
+import { Box, Typography, IconButton, Tooltip, Stack } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { Add } from '@mui/icons-material';
 import {
   InventoryStats,
@@ -251,88 +252,106 @@ export const Inventory = () => {
   return (
     <Box
       sx={{
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        px: 4,
-        py: 3,
-        gap: 3,
-        backgroundColor: '#fafafa',
+        minHeight: '100%',
+        background: theme =>
+          `linear-gradient(180deg, ${alpha(
+            theme.palette.primary.main,
+            0.08
+          )} 0%, ${alpha(theme.palette.info.main, 0)} 45%)`,
+        '& .MuiTypography-root': {
+          fontFamily: '"Space Grotesk", "Helvetica", "Arial", sans-serif',
+        },
       }}
     >
-      {/* Header */}
       <Box
         sx={{
+          width: '100%',
+          px: { xs: 2, sm: 3, md: 6 },
+          py: { xs: 4, md: 6 },
           display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
+          flexDirection: 'column',
+          gap: 3,
         }}
       >
-        <Box>
-          <Typography variant='h4' fontWeight={700}>
-            Inventory Management
-          </Typography>
-          <Typography variant='body2' color='text.secondary' sx={{ mt: 0.5 }}>
-            Manage and track your product inventory
-          </Typography>
+        {/* Header */}
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            gap: 2,
+          }}
+        >
+          <Stack spacing={2}>
+            <Typography
+              variant='overline'
+              sx={{
+                letterSpacing: '0.22em',
+                color: 'text.secondary',
+                fontWeight: 600,
+              }}
+            >
+              Inventory
+            </Typography>
+          </Stack>
+
+          <Tooltip title='Add New Product'>
+            <IconButton
+              onClick={handleAddProduct}
+              sx={{
+                bgcolor: 'primary.main',
+                color: 'primary.contrastText',
+                p: 1.25,
+                '&:hover': {
+                  bgcolor: 'primary.dark',
+                },
+              }}
+            >
+              <Add />
+            </IconButton>
+          </Tooltip>
         </Box>
 
-        <Tooltip title='Add New Product'>
-          <IconButton
-            onClick={handleAddProduct}
-            sx={{
-              bgcolor: 'primary.main',
-              color: 'white',
-              p: 1.5,
-              '&:hover': {
-                bgcolor: 'primary.dark',
-              },
-            }}
-          >
-            <Add />
-          </IconButton>
-        </Tooltip>
+        {/* Stats Section */}
+        <InventoryStats
+          totalProducts={stats.total}
+          lowStock={stats.low}
+          outOfStock={stats.out}
+          activeProducts={stats.active}
+        />
+
+        {/* Filters Section */}
+        <InventoryFilters
+          filters={filters}
+          onFiltersChange={handleFiltersChange}
+          categories={categories}
+          onReset={handleResetFilters}
+        />
+
+        {/* Table Section */}
+        <InventoryTable
+          data={filteredData}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onMore={handleMore}
+        />
+
+        {/* Add Stock Modal */}
+        <AddStockModal
+          open={addStockModal.open}
+          onClose={() => setAddStockModal({ open: false, product: undefined })}
+          onSubmit={handleAddStockSubmit}
+          product={addStockModal.product}
+        />
+
+        {/* Edit Stock Modal */}
+        <EditStockModal
+          open={editStockModal.open}
+          onClose={() => setEditStockModal({ open: false, product: undefined })}
+          onSubmit={handleEditStockSubmit}
+          product={editStockModal.product}
+        />
       </Box>
-
-      {/* Stats Section */}
-      <InventoryStats
-        totalProducts={stats.total}
-        lowStock={stats.low}
-        outOfStock={stats.out}
-        activeProducts={stats.active}
-      />
-
-      {/* Filters Section */}
-      <InventoryFilters
-        filters={filters}
-        onFiltersChange={handleFiltersChange}
-        categories={categories}
-        onReset={handleResetFilters}
-      />
-
-      {/* Table Section */}
-      <InventoryTable
-        data={filteredData}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onMore={handleMore}
-      />
-
-      {/* Add Stock Modal */}
-      <AddStockModal
-        open={addStockModal.open}
-        onClose={() => setAddStockModal({ open: false, product: undefined })}
-        onSubmit={handleAddStockSubmit}
-        product={addStockModal.product}
-      />
-
-      {/* Edit Stock Modal */}
-      <EditStockModal
-        open={editStockModal.open}
-        onClose={() => setEditStockModal({ open: false, product: undefined })}
-        onSubmit={handleEditStockSubmit}
-        product={editStockModal.product}
-      />
     </Box>
   );
 };

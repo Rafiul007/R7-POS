@@ -1,17 +1,17 @@
 import { Box, Paper, Typography, Stack } from '@mui/material';
-import { alpha, useTheme } from '@mui/material/styles';
 import {
-  Inventory2,
-  WarningAmber,
-  BlockOutlined,
+  Payment,
   CheckCircle,
+  Schedule,
+  ErrorOutline,
 } from '@mui/icons-material';
+import { alpha, useTheme } from '@mui/material/styles';
 
-interface InventoryStatsProps {
-  totalProducts: number;
-  lowStock: number;
-  outOfStock: number;
-  activeProducts: number;
+interface PaymentsStatsProps {
+  totalPayments: number;
+  paidPayments: number;
+  pendingPayments: number;
+  failedPayments: number;
 }
 
 const StatCard = ({
@@ -82,12 +82,12 @@ const StatCard = ({
   );
 };
 
-export const InventoryStats = ({
-  totalProducts,
-  lowStock,
-  outOfStock,
-  activeProducts,
-}: InventoryStatsProps) => {
+export const PaymentsStats = ({
+  totalPayments,
+  paidPayments,
+  pendingPayments,
+  failedPayments,
+}: PaymentsStatsProps) => {
   return (
     <Box
       sx={{
@@ -100,18 +100,10 @@ export const InventoryStats = ({
         gap: 2,
       }}
     >
-      <StatCard
-        icon={Inventory2}
-        label='Total Products'
-        value={totalProducts}
-      />
-      <StatCard icon={WarningAmber} label='Low Stock' value={lowStock} />
-      <StatCard icon={BlockOutlined} label='Out of Stock' value={outOfStock} />
-      <StatCard
-        icon={CheckCircle}
-        label='Active Products'
-        value={activeProducts}
-      />
+      <StatCard icon={Payment} label='Total Payments' value={totalPayments} />
+      <StatCard icon={CheckCircle} label='Paid' value={paidPayments} />
+      <StatCard icon={Schedule} label='Pending' value={pendingPayments} />
+      <StatCard icon={ErrorOutline} label='Failed' value={failedPayments} />
     </Box>
   );
 };

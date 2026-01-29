@@ -134,7 +134,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           mt: `${APP_BAR_HEIGHT}px`,
           height: `calc(100vh - ${APP_BAR_HEIGHT}px)`,
           overflow: 'auto',
-          p: 3,
           backgroundColor: theme.palette.background.default,
         }}
       >

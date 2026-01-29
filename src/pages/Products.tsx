@@ -1,4 +1,5 @@
-import { Typography, Box, Grid } from '@mui/material';
+import { Typography, Box, Grid, Stack, TextField } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { ProductGridItem } from '../components';
 import type { IProduct } from '../types';
 
@@ -56,20 +57,71 @@ const sampleProducts: IProduct[] = [
 
 export const Products = () => {
   return (
-    <Box>
-      <Typography variant='h4' component='h1' gutterBottom>
-        Products
-      </Typography>
-      <Typography variant='body1' sx={{ mb: 4, color: 'text.secondary' }}>
-        Browse our collection of products. Click "Add to Cart" to add items to
-        your order.
-      </Typography>
+    <Box
+      sx={{
+        minHeight: '100%',
+        px: { xs: 2, sm: 3, md: 6 },
+        py: { xs: 4, md: 6 },
+        background: theme =>
+          `linear-gradient(180deg, ${alpha(
+            theme.palette.primary.main,
+            0.12
+          )} 0%, ${alpha(theme.palette.info.main, 0)} 45%)`,
+      }}
+    >
+      <Box
+        sx={{
+          width: '100%',
+        }}
+      >
+        <Stack spacing={2} sx={{ mb: { xs: 3, md: 4 } }}>
+          <Typography
+            variant='overline'
+            sx={{
+              letterSpacing: '0.22em',
+              color: 'text.secondary',
+              fontWeight: 600,
+              textAlign: 'left',
+            }}
+          >
+            Products
+          </Typography>
+          <Typography
+            variant='body2'
+            sx={{ color: 'text.secondary', textAlign: 'left' }}
+          >
+            {sampleProducts.length} items available
+          </Typography>
+        </Stack>
 
-      <Grid container spacing={3}>
-        {sampleProducts.map(product => (
-          <ProductGridItem key={product.id} product={product} />
-        ))}
-      </Grid>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'left',
+            mb: { xs: 3, md: 4 },
+          }}
+        >
+          <TextField
+            placeholder='Search products'
+            variant='outlined'
+            fullWidth
+            size='small'
+            sx={{
+              maxWidth: 640,
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: theme =>
+                  alpha(theme.palette.background.paper, 0.9),
+              },
+            }}
+          />
+        </Box>
+
+        <Grid container spacing={1} justifyContent='flex-start'>
+          {sampleProducts.map(product => (
+            <ProductGridItem key={product.id} product={product} />
+          ))}
+        </Grid>
+      </Box>
     </Box>
   );
 };
