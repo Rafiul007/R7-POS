@@ -41,6 +41,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { selectCartItems, selectCartTotalPrice } from '../store/selectors';
 import { clearCart } from '../store/cartSlice';
+import { Receipt, type ReceiptData } from '../components/Receipt';
 
 interface PaymentMethod {
   id: string;
@@ -83,6 +84,7 @@ export const CartPayment = () => {
     email: false,
     sms: false,
   });
+  const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
   // eslint-disable-next-line react-hooks/purity
   const [transactionRef, setTransactionRef] = useState(`TXN-${Date.now()}`);
 
@@ -265,10 +267,42 @@ export const CartPayment = () => {
       receiptOptions,
     };
 
+    const receiptPayload: ReceiptData = {
+      reference: transactionRef,
+      timestamp: transactionData.timestamp,
+      customerName: customerInfo.name,
+      customerPhone: customerInfo.phone,
+      items: cartItems.map(item => ({
+        name: item.product.name,
+        sku: item.product.sku,
+        quantity: item.quantity,
+        unitPrice: item.product.discountPrice || item.product.price,
+        totalPrice:
+          (item.product.discountPrice || item.product.price) * item.quantity,
+      })),
+      subtotal: roundToCents(subtotal),
+      vat: roundToCents(vat),
+      vatPercentage: 10,
+      discountPercentage: discount,
+      discountAmount: roundToCents(discountAmount),
+      total: roundToCents(finalTotal),
+      payments: payments
+        .filter(p => p.saved)
+        .map(payment => ({
+          method: payment.method,
+          amount: roundToCents(payment.amount),
+          reference: payment.reference || null,
+          cardLastFour: payment.cardNumber?.slice(-4) || null,
+        })),
+      notes: orderNotes || null,
+    };
+
     // Log transaction data to console
     console.log('=== TRANSACTION DATA ===');
     console.log(JSON.stringify(transactionData, null, 2));
     console.log('========================');
+
+    setReceiptData(receiptPayload);
 
     // Clear the cart after successful payment
     dispatch(clearCart());
@@ -277,6 +311,14 @@ export const CartPayment = () => {
     alert(
       `Payment processed successfully!\nTotal: $${finalTotal.toFixed(2)}\nReference: ${transactionRef}`
     );
+    if (receiptOptions.print) {
+      setTimeout(() => {
+        window.print();
+        navigate('/');
+      }, 100);
+      return;
+    }
+
     navigate('/');
   };
 
@@ -285,137 +327,165 @@ export const CartPayment = () => {
   };
 
   return (
-    <Box
-      sx={{
-        maxWidth: 1400,
-        mx: 'auto',
-        p: 3,
-        backgroundColor: 'background.default',
-        minHeight: '100vh',
-      }}
-    >
-      {/* Header */}
+    <>
       <Box
+        className='no-print'
         sx={{
-          display: 'flex',
-          alignItems: 'center',
-          mb: 4,
-          pb: 2,
-          borderBottom: '2px solid',
-          borderColor: 'primary.main',
+          maxWidth: 1400,
+          mx: 'auto',
+          p: 3,
+          backgroundColor: 'background.default',
+          minHeight: '100vh',
         }}
       >
-        <IconButton onClick={handleBack} sx={{ mr: 2, color: 'primary.main' }}>
-          <ArrowBackIcon />
-        </IconButton>
-        <Typography
-          variant='h4'
-          component='h1'
-          fontWeight='bold'
-          color='primary.main'
+        {/* Header */}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            mb: 4,
+            pb: 2,
+            borderBottom: '2px solid',
+            borderColor: 'primary.main',
+          }}
         >
-          POS Checkout & Payment
-        </Typography>
-        <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Typography variant='body2' color='text.secondary'>
-            Transaction: {transactionRef}
-          </Typography>
-          <Chip
-            label='Active'
-            color='success'
-            size='small'
-            sx={{
-              borderRadius: 0,
-              backgroundColor: 'success.main',
-              color: 'white',
-            }}
-          />
-        </Box>
-      </Box>
-
-      <Grid container spacing={4}>
-        {/* Left Column - Customer & Payment Info */}
-        <Grid size={{ xs: 12, lg: 8 }}>
-          {/* Customer Information */}
-          <Box
-            sx={{
-              mb: 4,
-              border: '1px solid',
-              borderColor: 'divider',
-              backgroundColor: 'background.paper',
-            }}
+          <IconButton
+            onClick={handleBack}
+            sx={{ mr: 2, color: 'primary.main' }}
           >
+            <ArrowBackIcon />
+          </IconButton>
+          <Typography
+            variant='h4'
+            component='h1'
+            fontWeight='bold'
+            color='primary.main'
+          >
+            POS Checkout & Payment
+          </Typography>
+          <Box
+            sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: 2 }}
+          >
+            <Typography variant='body2' color='text.secondary'>
+              Transaction: {transactionRef}
+            </Typography>
+            <Chip
+              label='Active'
+              color='success'
+              size='small'
+              sx={{
+                borderRadius: 0,
+                backgroundColor: 'success.main',
+                color: 'white',
+              }}
+            />
+          </Box>
+        </Box>
+
+        <Grid container spacing={4}>
+          {/* Left Column - Customer & Payment Info */}
+          <Grid size={{ xs: 12, lg: 8 }}>
+            {/* Customer Information */}
             <Box
               sx={{
-                p: 3,
-                borderBottom: '1px solid',
+                mb: 4,
+                border: '1px solid',
                 borderColor: 'divider',
-                backgroundColor: 'primary.main',
-                color: 'primary.contrastText',
+                backgroundColor: 'background.paper',
               }}
             >
-              <Typography
-                variant='h6'
-                sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+              <Box
+                sx={{
+                  p: 3,
+                  borderBottom: '1px solid',
+                  borderColor: 'divider',
+                  backgroundColor: 'primary.main',
+                  color: 'primary.contrastText',
+                }}
               >
-                <PersonIcon />
-                Customer Information
-              </Typography>
-            </Box>
-            <Box sx={{ p: 3 }}>
-              <Grid container spacing={3}>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <FormControl component='fieldset'>
-                    <FormLabel component='legend' sx={{ mb: 1 }}>
-                      Customer Type
-                    </FormLabel>
-                    <RadioGroup
-                      row
-                      value={customerInfo.type}
-                      onChange={e =>
-                        setCustomerInfo({
-                          ...customerInfo,
-                          type: e.target.value,
-                        })
-                      }
-                    >
-                      <FormControlLabel
-                        value='walk-in'
-                        control={<Radio />}
-                        label='Walk-in'
-                      />
-                      <FormControlLabel
-                        value='registered'
-                        control={<Radio />}
-                        label='Registered'
-                      />
-                    </RadioGroup>
-                  </FormControl>
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField
-                    fullWidth
-                    label='Transaction Reference'
-                    value={transactionRef}
-                    onChange={e => setTransactionRef(e.target.value)}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 0,
-                        '& fieldset': { borderRadius: 0 },
-                      },
-                    }}
-                  />
-                </Grid>
-                {customerInfo.type === 'walk-in' && (
+                <Typography
+                  variant='h6'
+                  sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                >
+                  <PersonIcon />
+                  Customer Information
+                </Typography>
+              </Box>
+              <Box sx={{ p: 3 }}>
+                <Grid container spacing={3}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <FormControl component='fieldset'>
+                      <FormLabel component='legend' sx={{ mb: 1 }}>
+                        Customer Type
+                      </FormLabel>
+                      <RadioGroup
+                        row
+                        value={customerInfo.type}
+                        onChange={e =>
+                          setCustomerInfo({
+                            ...customerInfo,
+                            type: e.target.value,
+                          })
+                        }
+                      >
+                        <FormControlLabel
+                          value='walk-in'
+                          control={<Radio />}
+                          label='Walk-in'
+                        />
+                        <FormControlLabel
+                          value='registered'
+                          control={<Radio />}
+                          label='Registered'
+                        />
+                      </RadioGroup>
+                    </FormControl>
+                  </Grid>
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       fullWidth
-                      label='Full Name'
-                      value={customerInfo.name}
+                      label='Transaction Reference'
+                      value={transactionRef}
+                      onChange={e => setTransactionRef(e.target.value)}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 0,
+                          '& fieldset': { borderRadius: 0 },
+                        },
+                      }}
+                    />
+                  </Grid>
+                  {customerInfo.type === 'walk-in' && (
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <TextField
+                        fullWidth
+                        label='Full Name'
+                        value={customerInfo.name}
+                        onChange={e =>
+                          setCustomerInfo({
+                            ...customerInfo,
+                            name: e.target.value,
+                          })
+                        }
+                        required
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 0,
+                            '& fieldset': { borderRadius: 0 },
+                          },
+                        }}
+                      />
+                    </Grid>
+                  )}
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <TextField
+                      fullWidth
+                      label='Phone Number'
+                      value={customerInfo.phone}
                       onChange={e =>
                         setCustomerInfo({
                           ...customerInfo,
-                          name: e.target.value,
+                          phone: e.target.value,
                         })
                       }
                       required
@@ -427,156 +497,182 @@ export const CartPayment = () => {
                       }}
                     />
                   </Grid>
-                )}
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField
-                    fullWidth
-                    label='Phone Number'
-                    value={customerInfo.phone}
-                    onChange={e =>
-                      setCustomerInfo({
-                        ...customerInfo,
-                        phone: e.target.value,
-                      })
-                    }
-                    required
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 0,
-                        '& fieldset': { borderRadius: 0 },
-                      },
-                    }}
-                  />
+                  {customerInfo.type === 'walk-in' && (
+                    <Grid size={{ xs: 12 }}>
+                      <TextField
+                        fullWidth
+                        label='Email (Optional)'
+                        type='email'
+                        value={customerInfo.email}
+                        onChange={e =>
+                          setCustomerInfo({
+                            ...customerInfo,
+                            email: e.target.value,
+                          })
+                        }
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 0,
+                            '& fieldset': { borderRadius: 0 },
+                          },
+                        }}
+                      />
+                    </Grid>
+                  )}
                 </Grid>
-                {customerInfo.type === 'walk-in' && (
-                  <Grid size={{ xs: 12 }}>
-                    <TextField
-                      fullWidth
-                      label='Email (Optional)'
-                      type='email'
-                      value={customerInfo.email}
-                      onChange={e =>
-                        setCustomerInfo({
-                          ...customerInfo,
-                          email: e.target.value,
-                        })
-                      }
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 0,
-                          '& fieldset': { borderRadius: 0 },
-                        },
-                      }}
-                    />
-                  </Grid>
-                )}
-              </Grid>
+              </Box>
             </Box>
-          </Box>
 
-          {/* Payment Information - Multiple Methods */}
-          <Box
-            sx={{
-              mb: 4,
-              border: '1px solid',
-              borderColor: 'divider',
-              backgroundColor: 'background.paper',
-            }}
-          >
+            {/* Payment Information - Multiple Methods */}
             <Box
               sx={{
-                p: 3,
-                borderBottom: '1px solid',
+                mb: 4,
+                border: '1px solid',
                 borderColor: 'divider',
-                backgroundColor: 'primary.main',
-                color: 'primary.contrastText',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
+                backgroundColor: 'background.paper',
               }}
             >
-              <Typography
-                variant='h6'
-                sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-              >
-                <CreditCardIcon />
-                Payment Methods
-              </Typography>
-              <Button
-                variant='contained'
-                startIcon={<AddIcon />}
-                onClick={addPaymentMethod}
+              <Box
                 sx={{
-                  backgroundColor: 'primary.contrastText',
-                  color: 'primary.main',
-                  borderRadius: 0,
-                  '&:hover': {
-                    backgroundColor: 'primary.contrastText',
-                    opacity: 0.9,
-                  },
+                  p: 3,
+                  borderBottom: '1px solid',
+                  borderColor: 'divider',
+                  backgroundColor: 'primary.main',
+                  color: 'primary.contrastText',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
                 }}
               >
-                Add Payment
-              </Button>
-            </Box>
-            <Box sx={{ p: 3 }}>
-              {payments.map((payment, index) => (
-                <Box
-                  key={payment.id}
+                <Typography
+                  variant='h6'
+                  sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                >
+                  <CreditCardIcon />
+                  Payment Methods
+                </Typography>
+                <Button
+                  variant='contained'
+                  startIcon={<AddIcon />}
+                  onClick={addPaymentMethod}
                   sx={{
-                    mb: 3,
-                    pb: 3,
-                    borderBottom:
-                      index < payments.length - 1 ? '1px solid' : 'none',
-                    borderColor: 'divider',
+                    backgroundColor: 'primary.contrastText',
+                    color: 'primary.main',
+                    borderRadius: 0,
+                    '&:hover': {
+                      backgroundColor: 'primary.contrastText',
+                      opacity: 0.9,
+                    },
                   }}
                 >
+                  Add Payment
+                </Button>
+              </Box>
+              <Box sx={{ p: 3 }}>
+                {payments.map((payment, index) => (
                   <Box
+                    key={payment.id}
                     sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      mb: 2,
-                      gap: 2,
+                      mb: 3,
+                      pb: 3,
+                      borderBottom:
+                        index < payments.length - 1 ? '1px solid' : 'none',
+                      borderColor: 'divider',
                     }}
                   >
-                    <Typography variant='subtitle1' fontWeight='bold'>
-                      Payment Method {index + 1}
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Button
-                        size='small'
-                        variant='outlined'
-                        onClick={() =>
-                          togglePaymentSaved(payment.id, !payment.saved)
-                        }
-                        sx={{ borderRadius: 0 }}
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        mb: 2,
+                        gap: 2,
+                      }}
+                    >
+                      <Typography variant='subtitle1' fontWeight='bold'>
+                        Payment Method {index + 1}
+                      </Typography>
+                      <Box
+                        sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
                       >
-                        {payment.saved ? 'Edit' : 'Save'}
-                      </Button>
-                      {payments.length > 1 && (
-                        <IconButton
-                          onClick={() => removePaymentMethod(payment.id)}
-                          color='error'
+                        <Button
                           size='small'
+                          variant='outlined'
+                          onClick={() =>
+                            togglePaymentSaved(payment.id, !payment.saved)
+                          }
+                          sx={{ borderRadius: 0 }}
                         >
-                          <DeleteIcon />
-                        </IconButton>
-                      )}
+                          {payment.saved ? 'Edit' : 'Save'}
+                        </Button>
+                        {payments.length > 1 && (
+                          <IconButton
+                            onClick={() => removePaymentMethod(payment.id)}
+                            color='error'
+                            size='small'
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        )}
+                      </Box>
                     </Box>
-                  </Box>
 
-                  <Grid container spacing={3}>
-                    <Grid size={{ xs: 12, sm: 4 }}>
-                      <FormControl fullWidth>
-                        <InputLabel>Payment Type</InputLabel>
-                        <Select
-                          value={payment.method}
-                          label='Payment Type'
+                    <Grid container spacing={3}>
+                      <Grid size={{ xs: 12, sm: 4 }}>
+                        <FormControl fullWidth>
+                          <InputLabel>Payment Type</InputLabel>
+                          <Select
+                            value={payment.method}
+                            label='Payment Type'
+                            onChange={e =>
+                              updatePayment(payment.id, {
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                method: e.target.value as any,
+                              })
+                            }
+                            disabled={Boolean(payment.saved)}
+                            sx={{
+                              '& .MuiOutlinedInput-root': {
+                                borderRadius: 0,
+                                '& fieldset': { borderRadius: 0 },
+                              },
+                            }}
+                          >
+                            <MenuItem value='cash'>Cash</MenuItem>
+                            <MenuItem value='card'>Credit/Debit Card</MenuItem>
+                            <MenuItem value='digital'>Digital Wallet</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 4 }}>
+                        <TextField
+                          fullWidth
+                          label='Amount'
+                          type='number'
+                          value={payment.amount || ''}
                           onChange={e =>
                             updatePayment(payment.id, {
-                              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                              method: e.target.value as any,
+                              amount: parseFloat(e.target.value) || 0,
+                            })
+                          }
+                          disabled={Boolean(payment.saved)}
+                          inputProps={{ min: 0, step: 0.01 }}
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 0,
+                              '& fieldset': { borderRadius: 0 },
+                            },
+                          }}
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 4 }}>
+                        <TextField
+                          fullWidth
+                          label='Reference (Optional)'
+                          value={payment.reference || ''}
+                          onChange={e =>
+                            updatePayment(payment.id, {
+                              reference: e.target.value,
                             })
                           }
                           disabled={Boolean(payment.saved)}
@@ -586,624 +682,596 @@ export const CartPayment = () => {
                               '& fieldset': { borderRadius: 0 },
                             },
                           }}
-                        >
-                          <MenuItem value='cash'>Cash</MenuItem>
-                          <MenuItem value='card'>Credit/Debit Card</MenuItem>
-                          <MenuItem value='digital'>Digital Wallet</MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                    <Grid size={{ xs: 12, sm: 4 }}>
-                      <TextField
-                        fullWidth
-                        label='Amount'
-                        type='number'
-                        value={payment.amount || ''}
-                        onChange={e =>
-                          updatePayment(payment.id, {
-                            amount: parseFloat(e.target.value) || 0,
-                          })
-                        }
-                        disabled={Boolean(payment.saved)}
-                        inputProps={{ min: 0, step: 0.01 }}
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 0,
-                            '& fieldset': { borderRadius: 0 },
-                          },
-                        }}
-                      />
-                    </Grid>
-                    <Grid size={{ xs: 12, sm: 4 }}>
-                      <TextField
-                        fullWidth
-                        label='Reference (Optional)'
-                        value={payment.reference || ''}
-                        onChange={e =>
-                          updatePayment(payment.id, {
-                            reference: e.target.value,
-                          })
-                        }
-                        disabled={Boolean(payment.saved)}
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 0,
-                            '& fieldset': { borderRadius: 0 },
-                          },
-                        }}
-                      />
-                    </Grid>
+                        />
+                      </Grid>
 
-                    {payment.method === 'card' && (
-                      <>
-                        <Grid size={{ xs: 12 }}>
-                          <TextField
-                            fullWidth
-                            label='Card Number'
-                            placeholder='1234 5678 9012 3456'
-                            value={payment.cardNumber || ''}
-                            onChange={e =>
-                              updatePayment(payment.id, {
-                                cardNumber: e.target.value,
-                              })
-                            }
-                            disabled={Boolean(payment.saved)}
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                borderRadius: 0,
-                                '& fieldset': { borderRadius: 0 },
-                              },
-                            }}
-                          />
-                        </Grid>
-                        <Grid size={{ xs: 6 }}>
-                          <TextField
-                            fullWidth
-                            label='Expiry Date'
-                            placeholder='MM/YY'
-                            value={payment.expiryDate || ''}
-                            onChange={e =>
-                              updatePayment(payment.id, {
-                                expiryDate: e.target.value,
-                              })
-                            }
-                            disabled={Boolean(payment.saved)}
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                borderRadius: 0,
-                                '& fieldset': { borderRadius: 0 },
-                              },
-                            }}
-                          />
-                        </Grid>
-                        <Grid size={{ xs: 6 }}>
-                          <TextField
-                            fullWidth
-                            label='CVV'
-                            placeholder='123'
-                            value={payment.cvv || ''}
-                            onChange={e =>
-                              updatePayment(payment.id, { cvv: e.target.value })
-                            }
-                            disabled={Boolean(payment.saved)}
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                borderRadius: 0,
-                                '& fieldset': { borderRadius: 0 },
-                              },
-                            }}
-                          />
-                        </Grid>
-                      </>
-                    )}
-                  </Grid>
-                </Box>
-              ))}
-
-              {/* Payment Summary */}
-              <Box
-                sx={{
-                  mt: 3,
-                  p: 2,
-                  backgroundColor: 'grey.50',
-                  border: '1px solid',
-                  borderColor: 'grey.300',
-                }}
-              >
-                <Typography variant='subtitle2' gutterBottom fontWeight='bold'>
-                  Payment Summary
-                </Typography>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    mb: 1,
-                  }}
-                >
-                  <Typography variant='body2'>Total Amount:</Typography>
-                  <Typography variant='body2' fontWeight='bold'>
-                    ${finalTotal.toFixed(2)}
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    mb: 1,
-                  }}
-                >
-                  <Typography variant='body2'>Total Paid:</Typography>
-                  <Typography
-                    variant='body2'
-                    color='success.main'
-                    fontWeight='bold'
-                  >
-                    ${totalPaid.toFixed(2)}
-                  </Typography>
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant='body2'>Remaining:</Typography>
-                  <Typography
-                    variant='body2'
-                    color={
-                      remainingAmount > 0
-                        ? 'error.main'
-                        : remainingAmount < 0
-                          ? 'warning.main'
-                          : 'success.main'
-                    }
-                    fontWeight='bold'
-                  >
-                    ${remainingAmount.toFixed(2)}
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
-          </Box>
-
-          {/* Additional POS Features */}
-          <Box
-            sx={{
-              mb: 4,
-              border: '1px solid',
-              borderColor: 'divider',
-              backgroundColor: 'background.paper',
-            }}
-          >
-            <Accordion
-              sx={{
-                '&:before': { display: 'none' },
-                boxShadow: 'none',
-                border: 'none',
-                '& .MuiAccordionSummary-root': {
-                  borderRadius: 0,
-                  backgroundColor: 'primary.main',
-                  color: 'primary.contrastText',
-                  minHeight: 56,
-                  '&:hover': { backgroundColor: 'primary.dark' },
-                },
-                '& .MuiAccordionDetails-root': { borderRadius: 0, p: 3 },
-              }}
-            >
-              <AccordionSummary
-                expandIcon={
-                  <ExpandMoreIcon sx={{ color: 'primary.contrastText' }} />
-                }
-                sx={{ px: 3 }}
-              >
-                <Typography
-                  variant='h6'
-                  sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                >
-                  <NotesIcon />
-                  Order Details & Preferences
-                </Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Grid container spacing={3}>
-                  {/* Order Notes */}
-                  <Grid size={12}>
-                    <TextField
-                      fullWidth
-                      multiline
-                      rows={3}
-                      label='Order Notes/Special Instructions'
-                      placeholder='Any special instructions for this order...'
-                      value={orderNotes}
-                      onChange={e => setOrderNotes(e.target.value)}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 0,
-                          '& fieldset': { borderRadius: 0 },
-                        },
-                      }}
-                    />
-                  </Grid>
-
-                  {/* Receipt Options */}
-                  <Grid size={12}>
-                    <Typography
-                      variant='subtitle1'
-                      gutterBottom
-                      sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                    >
-                      <ReceiptIcon />
-                      Receipt Options
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={receiptOptions.print}
-                            onChange={e =>
-                              setReceiptOptions({
-                                ...receiptOptions,
-                                print: e.target.checked,
-                              })
-                            }
-                            color='primary'
-                          />
-                        }
-                        label='Print Receipt'
-                      />
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={receiptOptions.email}
-                            onChange={e =>
-                              setReceiptOptions({
-                                ...receiptOptions,
-                                email: e.target.checked,
-                              })
-                            }
-                            color='primary'
-                          />
-                        }
-                        label='Email Receipt'
-                      />
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={receiptOptions.sms}
-                            onChange={e =>
-                              setReceiptOptions({
-                                ...receiptOptions,
-                                sms: e.target.checked,
-                              })
-                            }
-                            color='primary'
-                          />
-                        }
-                        label='SMS Receipt'
-                      />
-                    </Box>
-                  </Grid>
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-          </Box>
-
-          {/* Coupon/Discount Section */}
-          <Box
-            sx={{
-              mb: 4,
-              border: '1px solid',
-              borderColor: 'divider',
-              backgroundColor: 'background.paper',
-            }}
-          >
-            <Box
-              sx={{
-                p: 3,
-                borderBottom: '1px solid',
-                borderColor: 'divider',
-                backgroundColor: 'warning.main',
-                color: 'warning.contrastText',
-              }}
-            >
-              <Typography
-                variant='h6'
-                sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-              >
-                <CouponIcon />
-                Discount & Coupons
-              </Typography>
-            </Box>
-            <Box sx={{ p: 3 }}>
-              <Box
-                sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}
-              >
-                <TextField
-                  fullWidth
-                  label='Coupon Code'
-                  placeholder='Enter coupon code'
-                  value={couponCode}
-                  onChange={e => setCouponCode(e.target.value)}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: 0,
-                      '& fieldset': { borderRadius: 0 },
-                    },
-                  }}
-                />
-                <Button
-                  variant='contained'
-                  onClick={handleApplyCoupon}
-                  sx={{
-                    minWidth: 120,
-                    borderRadius: 0,
-                    backgroundColor: 'warning.main',
-                    color: 'warning.contrastText',
-                    '&:hover': { backgroundColor: 'warning.dark' },
-                  }}
-                >
-                  Apply
-                </Button>
-              </Box>
-              {discount > 0 && (
-                <Box sx={{ mt: 2 }}>
-                  <Chip
-                    label={`${discount}% discount applied`}
-                    color='success'
-                    variant='outlined'
-                    sx={{
-                      borderRadius: 0,
-                      borderColor: 'success.main',
-                      color: 'success.main',
-                    }}
-                  />
-                </Box>
-              )}
-            </Box>
-          </Box>
-        </Grid>
-
-        {/* Right Column - Order Summary */}
-        <Grid size={{ xs: 12, lg: 4 }}>
-          <Box
-            sx={{
-              position: 'sticky',
-              top: 24,
-              border: '2px solid',
-              borderColor: 'primary.main',
-              backgroundColor: 'background.paper',
-            }}
-          >
-            <Box
-              sx={{
-                p: 3,
-                borderBottom: '2px solid',
-                borderColor: 'primary.main',
-                backgroundColor: 'primary.main',
-                color: 'primary.contrastText',
-              }}
-            >
-              <Typography variant='h6' fontWeight='bold' textAlign='center'>
-                Order Summary
-              </Typography>
-            </Box>
-
-            <Box sx={{ p: 3 }}>
-              {/* Cart Items */}
-              <List sx={{ mb: 3 }}>
-                {cartItems.map(item => (
-                  <ListItem
-                    key={item.product.id}
-                    sx={{
-                      px: 0,
-                      py: 2,
-                      borderBottom: '1px solid',
-                      borderColor: 'divider',
-                      alignItems: 'flex-start',
-                    }}
-                  >
-                    <Avatar
-                      src={item.product.image}
-                      variant='square'
-                      sx={{
-                        width: 50,
-                        height: 50,
-                        mr: 2,
-                        border: '1px solid',
-                        borderColor: 'divider',
-                        borderRadius: 0,
-                      }}
-                    >
-                      {item.product.name.charAt(0)}
-                    </Avatar>
-                    <ListItemText
-                      primary={
-                        <Typography
-                          variant='body1'
-                          fontWeight='bold'
-                          color='primary.main'
-                        >
-                          {item.product.name}
-                        </Typography>
-                      }
-                      secondary={
+                      {payment.method === 'card' && (
                         <>
-                          <Typography
-                            variant='body2'
-                            color='text.secondary'
-                            component='span'
-                            display='block'
-                          >
-                            SKU: {item.product.sku}
-                          </Typography>
-                          <Typography
-                            variant='body2'
-                            component='span'
-                            display='block'
-                          >
-                            Qty: {item.quantity} × $
-                            {(
-                              item.product.discountPrice || item.product.price
-                            ).toFixed(2)}
-                          </Typography>
-                          {item.notes && (
-                            <Typography
-                              variant='caption'
-                              color='warning.main'
-                              component='span'
-                              display='block'
-                            >
-                              Note: {item.notes}
-                            </Typography>
-                          )}
+                          <Grid size={{ xs: 12 }}>
+                            <TextField
+                              fullWidth
+                              label='Card Number'
+                              placeholder='1234 5678 9012 3456'
+                              value={payment.cardNumber || ''}
+                              onChange={e =>
+                                updatePayment(payment.id, {
+                                  cardNumber: e.target.value,
+                                })
+                              }
+                              disabled={Boolean(payment.saved)}
+                              sx={{
+                                '& .MuiOutlinedInput-root': {
+                                  borderRadius: 0,
+                                  '& fieldset': { borderRadius: 0 },
+                                },
+                              }}
+                            />
+                          </Grid>
+                          <Grid size={{ xs: 6 }}>
+                            <TextField
+                              fullWidth
+                              label='Expiry Date'
+                              placeholder='MM/YY'
+                              value={payment.expiryDate || ''}
+                              onChange={e =>
+                                updatePayment(payment.id, {
+                                  expiryDate: e.target.value,
+                                })
+                              }
+                              disabled={Boolean(payment.saved)}
+                              sx={{
+                                '& .MuiOutlinedInput-root': {
+                                  borderRadius: 0,
+                                  '& fieldset': { borderRadius: 0 },
+                                },
+                              }}
+                            />
+                          </Grid>
+                          <Grid size={{ xs: 6 }}>
+                            <TextField
+                              fullWidth
+                              label='CVV'
+                              placeholder='123'
+                              value={payment.cvv || ''}
+                              onChange={e =>
+                                updatePayment(payment.id, {
+                                  cvv: e.target.value,
+                                })
+                              }
+                              disabled={Boolean(payment.saved)}
+                              sx={{
+                                '& .MuiOutlinedInput-root': {
+                                  borderRadius: 0,
+                                  '& fieldset': { borderRadius: 0 },
+                                },
+                              }}
+                            />
+                          </Grid>
                         </>
-                      }
-                    />
-                    <Typography
-                      variant='h6'
-                      fontWeight='bold'
-                      color='primary.main'
-                    >
-                      $
-                      {(
-                        (item.product.discountPrice || item.product.price) *
-                        item.quantity
-                      ).toFixed(2)}
-                    </Typography>
-                  </ListItem>
+                      )}
+                    </Grid>
+                  </Box>
                 ))}
-              </List>
 
-              <Divider
-                sx={{ my: 2, borderColor: 'primary.main', borderWidth: 1 }}
-              />
-
-              {/* Totals */}
-              <Box sx={{ mb: 3 }}>
+                {/* Payment Summary */}
                 <Box
                   sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    mb: 1,
+                    mt: 3,
+                    p: 2,
+                    backgroundColor: 'grey.50',
+                    border: '1px solid',
+                    borderColor: 'grey.300',
                   }}
                 >
-                  <Typography variant='body1'>Subtotal:</Typography>
-                  <Typography variant='body1'>
-                    ${subtotal.toFixed(2)}
+                  <Typography
+                    variant='subtitle2'
+                    gutterBottom
+                    fontWeight='bold'
+                  >
+                    Payment Summary
                   </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    mb: 1,
-                  }}
-                >
-                  <Typography variant='body1'>VAT (10%):</Typography>
-                  <Typography variant='body1'>${vat.toFixed(2)}</Typography>
-                </Box>
-                {discount > 0 && (
                   <Box
                     sx={{
                       display: 'flex',
                       justifyContent: 'space-between',
                       mb: 1,
-                      color: 'success.main',
                     }}
                   >
-                    <Typography variant='body1' fontWeight='bold'>
-                      Discount ({discount}%):
-                    </Typography>
-                    <Typography variant='body1' fontWeight='bold'>
-                      -${discountAmount.toFixed(2)}
+                    <Typography variant='body2'>Total Amount:</Typography>
+                    <Typography variant='body2' fontWeight='bold'>
+                      ${finalTotal.toFixed(2)}
                     </Typography>
                   </Box>
-                )}
-                <Divider
-                  sx={{ my: 2, borderColor: 'primary.main', borderWidth: 2 }}
-                />
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    mb: 2,
-                  }}
-                >
-                  <Typography
-                    variant='h5'
-                    fontWeight='bold'
-                    color='primary.main'
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      mb: 1,
+                    }}
                   >
-                    Total:
-                  </Typography>
-                  <Typography
-                    variant='h5'
-                    fontWeight='bold'
-                    color='primary.main'
+                    <Typography variant='body2'>Total Paid:</Typography>
+                    <Typography
+                      variant='body2'
+                      color='success.main'
+                      fontWeight='bold'
+                    >
+                      ${totalPaid.toFixed(2)}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{ display: 'flex', justifyContent: 'space-between' }}
                   >
-                    ${finalTotal.toFixed(2)}
-                  </Typography>
-                </Box>
-
-                {/* Payment Status */}
-                <Box
-                  sx={{
-                    p: 2,
-                    backgroundColor: isPaymentComplete
-                      ? 'success.light'
-                      : remainingAmount > 0
-                        ? 'error.light'
-                        : 'warning.light',
-                    border: '1px solid',
-                    borderColor: isPaymentComplete
-                      ? 'success.main'
-                      : remainingAmount > 0
-                        ? 'error.main'
-                        : 'warning.main',
-                  }}
-                >
-                  <Typography
-                    variant='body2'
-                    fontWeight='bold'
-                    textAlign='center'
-                  >
-                    {isPaymentComplete
-                      ? 'Payment Complete'
-                      : remainingAmount > 0
-                        ? `Amount Due: $${remainingAmount.toFixed(2)}`
-                        : `Change Due: $${Math.abs(remainingAmount).toFixed(2)}`}
-                  </Typography>
+                    <Typography variant='body2'>Remaining:</Typography>
+                    <Typography
+                      variant='body2'
+                      color={
+                        remainingAmount > 0
+                          ? 'error.main'
+                          : remainingAmount < 0
+                            ? 'warning.main'
+                            : 'success.main'
+                      }
+                      fontWeight='bold'
+                    >
+                      ${remainingAmount.toFixed(2)}
+                    </Typography>
+                  </Box>
                 </Box>
               </Box>
+            </Box>
 
-              {/* Payment Button */}
-              <Button
-                fullWidth
-                variant='contained'
-                size='large'
-                onClick={handlePayment}
-                disabled={!isPaymentComplete}
-                startIcon={<PaymentIcon />}
+            {/* Additional POS Features */}
+            <Box
+              sx={{
+                mb: 4,
+                border: '1px solid',
+                borderColor: 'divider',
+                backgroundColor: 'background.paper',
+              }}
+            >
+              <Accordion
                 sx={{
-                  py: 2,
-                  fontSize: '1.1rem',
-                  fontWeight: 'bold',
-                  borderRadius: 0,
-                  backgroundColor: isPaymentComplete
-                    ? 'success.main'
-                    : 'grey.400',
-                  '&:hover': {
-                    backgroundColor: isPaymentComplete
-                      ? 'success.dark'
-                      : 'grey.500',
+                  '&:before': { display: 'none' },
+                  boxShadow: 'none',
+                  border: 'none',
+                  '& .MuiAccordionSummary-root': {
+                    borderRadius: 0,
+                    backgroundColor: 'primary.main',
+                    color: 'primary.contrastText',
+                    minHeight: 56,
+                    '&:hover': { backgroundColor: 'primary.dark' },
                   },
-                  '&.Mui-disabled': {
-                    backgroundColor: 'grey.300',
-                    color: 'grey.500',
-                  },
+                  '& .MuiAccordionDetails-root': { borderRadius: 0, p: 3 },
                 }}
               >
-                {isPaymentComplete ? 'Complete Payment' : 'Payment Incomplete'}
-              </Button>
+                <AccordionSummary
+                  expandIcon={
+                    <ExpandMoreIcon sx={{ color: 'primary.contrastText' }} />
+                  }
+                  sx={{ px: 3 }}
+                >
+                  <Typography
+                    variant='h6'
+                    sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                  >
+                    <NotesIcon />
+                    Order Details & Preferences
+                  </Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Grid container spacing={3}>
+                    {/* Order Notes */}
+                    <Grid size={12}>
+                      <TextField
+                        fullWidth
+                        multiline
+                        rows={3}
+                        label='Order Notes/Special Instructions'
+                        placeholder='Any special instructions for this order...'
+                        value={orderNotes}
+                        onChange={e => setOrderNotes(e.target.value)}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 0,
+                            '& fieldset': { borderRadius: 0 },
+                          },
+                        }}
+                      />
+                    </Grid>
+
+                    {/* Receipt Options */}
+                    <Grid size={12}>
+                      <Typography
+                        variant='subtitle1'
+                        gutterBottom
+                        sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                      >
+                        <ReceiptIcon />
+                        Receipt Options
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+                        <FormControlLabel
+                          control={
+                            <Switch
+                              checked={receiptOptions.print}
+                              onChange={e =>
+                                setReceiptOptions({
+                                  ...receiptOptions,
+                                  print: e.target.checked,
+                                })
+                              }
+                              color='primary'
+                            />
+                          }
+                          label='Print Receipt'
+                        />
+                        <FormControlLabel
+                          control={
+                            <Switch
+                              checked={receiptOptions.email}
+                              onChange={e =>
+                                setReceiptOptions({
+                                  ...receiptOptions,
+                                  email: e.target.checked,
+                                })
+                              }
+                              color='primary'
+                            />
+                          }
+                          label='Email Receipt'
+                        />
+                        <FormControlLabel
+                          control={
+                            <Switch
+                              checked={receiptOptions.sms}
+                              onChange={e =>
+                                setReceiptOptions({
+                                  ...receiptOptions,
+                                  sms: e.target.checked,
+                                })
+                              }
+                              color='primary'
+                            />
+                          }
+                          label='SMS Receipt'
+                        />
+                      </Box>
+                    </Grid>
+                  </Grid>
+                </AccordionDetails>
+              </Accordion>
             </Box>
-          </Box>
+
+            {/* Coupon/Discount Section */}
+            <Box
+              sx={{
+                mb: 4,
+                border: '1px solid',
+                borderColor: 'divider',
+                backgroundColor: 'background.paper',
+              }}
+            >
+              <Box
+                sx={{
+                  p: 3,
+                  borderBottom: '1px solid',
+                  borderColor: 'divider',
+                  backgroundColor: 'warning.main',
+                  color: 'warning.contrastText',
+                }}
+              >
+                <Typography
+                  variant='h6'
+                  sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                >
+                  <CouponIcon />
+                  Discount & Coupons
+                </Typography>
+              </Box>
+              <Box sx={{ p: 3 }}>
+                <Box
+                  sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}
+                >
+                  <TextField
+                    fullWidth
+                    label='Coupon Code'
+                    placeholder='Enter coupon code'
+                    value={couponCode}
+                    onChange={e => setCouponCode(e.target.value)}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 0,
+                        '& fieldset': { borderRadius: 0 },
+                      },
+                    }}
+                  />
+                  <Button
+                    variant='contained'
+                    onClick={handleApplyCoupon}
+                    sx={{
+                      minWidth: 120,
+                      borderRadius: 0,
+                      backgroundColor: 'warning.main',
+                      color: 'warning.contrastText',
+                      '&:hover': { backgroundColor: 'warning.dark' },
+                    }}
+                  >
+                    Apply
+                  </Button>
+                </Box>
+                {discount > 0 && (
+                  <Box sx={{ mt: 2 }}>
+                    <Chip
+                      label={`${discount}% discount applied`}
+                      color='success'
+                      variant='outlined'
+                      sx={{
+                        borderRadius: 0,
+                        borderColor: 'success.main',
+                        color: 'success.main',
+                      }}
+                    />
+                  </Box>
+                )}
+              </Box>
+            </Box>
+          </Grid>
+
+          {/* Right Column - Order Summary */}
+          <Grid size={{ xs: 12, lg: 4 }}>
+            <Box
+              sx={{
+                position: 'sticky',
+                top: 24,
+                border: '2px solid',
+                borderColor: 'primary.main',
+                backgroundColor: 'background.paper',
+              }}
+            >
+              <Box
+                sx={{
+                  p: 3,
+                  borderBottom: '2px solid',
+                  borderColor: 'primary.main',
+                  backgroundColor: 'primary.main',
+                  color: 'primary.contrastText',
+                }}
+              >
+                <Typography variant='h6' fontWeight='bold' textAlign='center'>
+                  Order Summary
+                </Typography>
+              </Box>
+
+              <Box sx={{ p: 3 }}>
+                {/* Cart Items */}
+                <List sx={{ mb: 3 }}>
+                  {cartItems.map(item => (
+                    <ListItem
+                      key={item.product.id}
+                      sx={{
+                        px: 0,
+                        py: 2,
+                        borderBottom: '1px solid',
+                        borderColor: 'divider',
+                        alignItems: 'flex-start',
+                      }}
+                    >
+                      <Avatar
+                        src={item.product.image}
+                        variant='square'
+                        sx={{
+                          width: 50,
+                          height: 50,
+                          mr: 2,
+                          border: '1px solid',
+                          borderColor: 'divider',
+                          borderRadius: 0,
+                        }}
+                      >
+                        {item.product.name.charAt(0)}
+                      </Avatar>
+                      <ListItemText
+                        primary={
+                          <Typography
+                            variant='body1'
+                            fontWeight='bold'
+                            color='primary.main'
+                          >
+                            {item.product.name}
+                          </Typography>
+                        }
+                        secondary={
+                          <>
+                            <Typography
+                              variant='body2'
+                              color='text.secondary'
+                              component='span'
+                              display='block'
+                            >
+                              SKU: {item.product.sku}
+                            </Typography>
+                            <Typography
+                              variant='body2'
+                              component='span'
+                              display='block'
+                            >
+                              Qty: {item.quantity} × $
+                              {(
+                                item.product.discountPrice || item.product.price
+                              ).toFixed(2)}
+                            </Typography>
+                            {item.notes && (
+                              <Typography
+                                variant='caption'
+                                color='warning.main'
+                                component='span'
+                                display='block'
+                              >
+                                Note: {item.notes}
+                              </Typography>
+                            )}
+                          </>
+                        }
+                      />
+                      <Typography
+                        variant='h6'
+                        fontWeight='bold'
+                        color='primary.main'
+                      >
+                        $
+                        {(
+                          (item.product.discountPrice || item.product.price) *
+                          item.quantity
+                        ).toFixed(2)}
+                      </Typography>
+                    </ListItem>
+                  ))}
+                </List>
+
+                <Divider
+                  sx={{ my: 2, borderColor: 'primary.main', borderWidth: 1 }}
+                />
+
+                {/* Totals */}
+                <Box sx={{ mb: 3 }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      mb: 1,
+                    }}
+                  >
+                    <Typography variant='body1'>Subtotal:</Typography>
+                    <Typography variant='body1'>
+                      ${subtotal.toFixed(2)}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      mb: 1,
+                    }}
+                  >
+                    <Typography variant='body1'>VAT (10%):</Typography>
+                    <Typography variant='body1'>${vat.toFixed(2)}</Typography>
+                  </Box>
+                  {discount > 0 && (
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        mb: 1,
+                        color: 'success.main',
+                      }}
+                    >
+                      <Typography variant='body1' fontWeight='bold'>
+                        Discount ({discount}%):
+                      </Typography>
+                      <Typography variant='body1' fontWeight='bold'>
+                        -${discountAmount.toFixed(2)}
+                      </Typography>
+                    </Box>
+                  )}
+                  <Divider
+                    sx={{ my: 2, borderColor: 'primary.main', borderWidth: 2 }}
+                  />
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      mb: 2,
+                    }}
+                  >
+                    <Typography
+                      variant='h5'
+                      fontWeight='bold'
+                      color='primary.main'
+                    >
+                      Total:
+                    </Typography>
+                    <Typography
+                      variant='h5'
+                      fontWeight='bold'
+                      color='primary.main'
+                    >
+                      ${finalTotal.toFixed(2)}
+                    </Typography>
+                  </Box>
+
+                  {/* Payment Status */}
+                  <Box
+                    sx={{
+                      p: 2,
+                      backgroundColor: isPaymentComplete
+                        ? 'success.light'
+                        : remainingAmount > 0
+                          ? 'error.light'
+                          : 'warning.light',
+                      border: '1px solid',
+                      borderColor: isPaymentComplete
+                        ? 'success.main'
+                        : remainingAmount > 0
+                          ? 'error.main'
+                          : 'warning.main',
+                    }}
+                  >
+                    <Typography
+                      variant='body2'
+                      fontWeight='bold'
+                      textAlign='center'
+                    >
+                      {isPaymentComplete
+                        ? 'Payment Complete'
+                        : remainingAmount > 0
+                          ? `Amount Due: $${remainingAmount.toFixed(2)}`
+                          : `Change Due: $${Math.abs(remainingAmount).toFixed(2)}`}
+                    </Typography>
+                  </Box>
+                </Box>
+
+                {/* Payment Button */}
+                <Button
+                  fullWidth
+                  variant='contained'
+                  size='large'
+                  onClick={handlePayment}
+                  disabled={!isPaymentComplete}
+                  startIcon={<PaymentIcon />}
+                  sx={{
+                    py: 2,
+                    fontSize: '1.1rem',
+                    fontWeight: 'bold',
+                    borderRadius: 0,
+                    backgroundColor: isPaymentComplete
+                      ? 'success.main'
+                      : 'grey.400',
+                    '&:hover': {
+                      backgroundColor: isPaymentComplete
+                        ? 'success.dark'
+                        : 'grey.500',
+                    },
+                    '&.Mui-disabled': {
+                      backgroundColor: 'grey.300',
+                      color: 'grey.500',
+                    },
+                  }}
+                >
+                  {isPaymentComplete
+                    ? 'Complete Payment'
+                    : 'Payment Incomplete'}
+                </Button>
+              </Box>
+            </Box>
+          </Grid>
         </Grid>
-      </Grid>
-    </Box>
+      </Box>
+
+      {receiptData && (
+        <Box className='print-only' sx={{ p: 3 }}>
+          <Receipt data={receiptData} />
+        </Box>
+      )}
+    </>
   );
 };
