@@ -23,6 +23,13 @@ export default App;
 
 const AppRoutes = () => {
   const { isAuthenticated } = useAuth();
+
+  const withDashboard = (element: React.ReactNode) => (
+    <ProtectedRoute>
+      <DashboardLayout>{element}</DashboardLayout>
+    </ProtectedRoute>
+  );
+
   return (
     <Routes>
       <Route
@@ -33,56 +40,11 @@ const AppRoutes = () => {
         path='/signup'
         element={isAuthenticated ? <Navigate to='/' replace /> : <Signup />}
       />
-      <Route
-        path='/'
-        element={
-          <ProtectedRoute>
-            <DashboardLayout>
-              <Home />
-            </DashboardLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path='/products'
-        element={
-          <ProtectedRoute>
-            <DashboardLayout>
-              <Products />
-            </DashboardLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path='/inventory'
-        element={
-          <ProtectedRoute>
-            <DashboardLayout>
-              <Inventory />
-            </DashboardLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path='/payments'
-        element={
-          <ProtectedRoute>
-            <DashboardLayout>
-              <Payments />
-            </DashboardLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path='/cart-payment'
-        element={
-          <ProtectedRoute>
-            <DashboardLayout>
-              <CartPayment />
-            </DashboardLayout>
-          </ProtectedRoute>
-        }
-      />
+      <Route path='/' element={withDashboard(<Home />)} />
+      <Route path='/products' element={withDashboard(<Products />)} />
+      <Route path='/inventory' element={withDashboard(<Inventory />)} />
+      <Route path='/payments' element={withDashboard(<Payments />)} />
+      <Route path='/cart-payment' element={withDashboard(<CartPayment />)} />
       <Route
         path='*'
         element={<Navigate to={isAuthenticated ? '/' : '/login'} replace />}
