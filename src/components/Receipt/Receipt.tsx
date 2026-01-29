@@ -41,12 +41,12 @@ const formatCurrency = (value: number) =>
     currency: 'USD',
   }).format(value);
 
-export const Receipt = ({ data }: ReceiptProps) => {
+const Receipt = ({ data }: ReceiptProps) => {
   return (
     <Box sx={{ width: 320, mx: 'auto', color: 'text.primary' }}>
       <Stack spacing={1} sx={{ textAlign: 'center', mb: 2 }}>
         <Typography variant='h6' fontWeight={700}>
-          POS Receipt
+          R7-POS Receipt
         </Typography>
         <Typography variant='caption' color='text.secondary'>
           Transaction {data.reference}
@@ -185,3 +185,6 @@ export const Receipt = ({ data }: ReceiptProps) => {
     </Box>
   );
 };
+
+export { Receipt };
+export default Receipt;

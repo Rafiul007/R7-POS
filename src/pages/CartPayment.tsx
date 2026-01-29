@@ -85,7 +85,6 @@ export const CartPayment = () => {
     sms: false,
   });
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
-  // eslint-disable-next-line react-hooks/purity
   const [transactionRef, setTransactionRef] = useState(`TXN-${Date.now()}`);
 
   const subtotal = totalPrice;
@@ -361,7 +360,7 @@ export const CartPayment = () => {
             fontWeight='bold'
             color='primary.main'
           >
-            POS Checkout & Payment
+            R7-POS Checkout & Payment
           </Typography>
           <Box
             sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: 2 }}
@@ -820,7 +819,7 @@ export const CartPayment = () => {
               </Box>
             </Box>
 
-            {/* Additional POS Features */}
+            {/* Additional R7-POS Features */}
             <Box
               sx={{
                 mb: 4,

@@ -15,6 +15,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { DrawerContent } from './DrawerContent';
 import { UserMenu } from './UserMenu';
+import { useAuth } from '../auth';
 
 const DRAWER_WIDTH = 260;
 const APP_BAR_HEIGHT = 64;
@@ -29,6 +30,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -43,6 +45,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     if (isMobile) {
       setMobileOpen(false);
     }
+  };
+
+  const handleLogout = () => {
+    logout();
+    setAnchorEl(null);
+    navigate('/login');
   };
 
   return (
@@ -74,14 +82,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           )}
 
           <Typography variant='h6' sx={{ flexGrow: 1, fontWeight: 600 }}>
-            POS System
+            R7-POS
           </Typography>
 
           <UserMenu
             anchorEl={anchorEl}
             onMenuOpen={e => setAnchorEl(e.currentTarget)}
             onMenuClose={() => setAnchorEl(null)}
-            onLogout={() => setAnchorEl(null)}
+            onLogout={handleLogout}
           />
         </Toolbar>
       </AppBar>

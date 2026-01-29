@@ -1,5 +1,5 @@
 export const APP_CONFIG = {
-  NAME: import.meta.env.VITE_APP_NAME || 'POS System',
+  NAME: import.meta.env.VITE_APP_NAME || 'R7-POS',
   VERSION: import.meta.env.VITE_APP_VERSION || '1.0.0',
   API_BASE_URL:
     import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api',
