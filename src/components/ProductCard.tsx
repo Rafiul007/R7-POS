@@ -217,37 +217,42 @@ export const ProductCard: React.FC<IProductCardProps> = ({
           </Stack>
         </Box>
 
-        <Button
-          variant='outlined'
-          fullWidth
-          onClick={handleAddToCart}
-          disabled={product.stock === 0 || isAtStockLimit}
-          startIcon={isInCart ? <ShoppingCartIcon /> : <AddIcon />}
-          sx={{
-            borderRadius: 0,
-            fontWeight: 600,
-            textTransform: 'none',
-            py: 1.25,
-            fontFamily: '"Space Grotesk", "Helvetica", "Arial", sans-serif',
-            '&:hover': {
-              backgroundColor: theme.palette.text.primary,
-              color: theme.palette.background.paper,
-            },
-            '&:disabled': {
-              borderColor: theme.palette.divider,
-              color: theme.palette.text.disabled,
-            },
-            transition: 'all 0.2s ease',
-          }}
-        >
-          {product.stock === 0
-            ? 'Out of Stock'
-            : isAtStockLimit
-              ? 'Stock Limit Reached'
-              : isInCart
-                ? `Add More${quantity > 0 ? ` (${quantity})` : ''}`
-                : 'Add to Cart'}
-        </Button>
+        <Stack direction='row' spacing={1} alignItems='center'>
+          <Button
+            variant='contained'
+            fullWidth
+            disableElevation
+            onClick={handleAddToCart}
+            disabled={product.stock === 0 || isAtStockLimit}
+            startIcon={isInCart ? <ShoppingCartIcon /> : <AddIcon />}
+            sx={{
+              borderRadius: 0,
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              py: 1.1,
+              fontSize: '0.75rem',
+              fontFamily: '"Space Grotesk", "Helvetica", "Arial", sans-serif',
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.info.main} 100%)`,
+              '&:hover': {
+                opacity: 0.92,
+              },
+              '&:disabled': {
+                background: theme.palette.action.disabledBackground,
+                color: theme.palette.text.disabled,
+              },
+              transition: 'all 0.2s ease',
+            }}
+          >
+            {product.stock === 0
+              ? 'Out of Stock'
+              : isAtStockLimit
+                ? 'Stock Limit Reached'
+                : isInCart
+                  ? `Add More${quantity > 0 ? ` (${quantity})` : ''}`
+                  : 'Add to Cart'}
+          </Button>
+        </Stack>
       </CardContent>
     </Card>
   );

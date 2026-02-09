@@ -9,13 +9,17 @@ import {
 import { alpha } from '@mui/material/styles';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth';
+import { useAlert } from '../hooks';
+import { MESSAGES } from '../constants';
 
 export const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { showAlert } = useAlert();
 
   const handleLogin = () => {
     login();
+    showAlert({ message: MESSAGES.AUTH.LOGIN_SUCCESS, severity: 'success' });
     navigate('/');
   };
 

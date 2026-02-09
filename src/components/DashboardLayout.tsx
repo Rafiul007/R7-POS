@@ -1,21 +1,25 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   AppBar,
   Box,
   CssBaseline,
   Drawer,
   IconButton,
+  Stack,
   Toolbar,
   Typography,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import { FiberManualRecord } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
 import { DrawerContent } from './DrawerContent';
 import { UserMenu } from './UserMenu';
 import { useAuth } from '../auth';
+import { getShiftStatus } from '../utils/drawer';
+import { getBranchById } from '../data/branches';
 
 const DRAWER_WIDTH = 260;
 const APP_BAR_HEIGHT = 64;
@@ -34,8 +38,18 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [shiftInfo, setShiftInfo] = useState(() => getShiftStatus());
 
   const toggleDrawer = () => setMobileOpen(prev => !prev);
+
+  useEffect(() => {
+    const handleShiftUpdate = () => {
+      setShiftInfo(getShiftStatus());
+    };
+    window.addEventListener('drawer-shift-updated', handleShiftUpdate);
+    return () =>
+      window.removeEventListener('drawer-shift-updated', handleShiftUpdate);
+  }, []);
 
   /**
    * 🔑 SINGLE SOURCE OF TRUTH FOR NAVIGATION
@@ -84,6 +98,27 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           <Typography variant='h6' sx={{ flexGrow: 1, fontWeight: 600 }}>
             R7-POS
           </Typography>
+
+          <Stack direction='row' spacing={1} alignItems='center' sx={{ mr: 2 }}>
+            <FiberManualRecord
+              fontSize='small'
+              sx={{
+                color:
+                  shiftInfo.status === 'open'
+                    ? theme.palette.success.main
+                    : theme.palette.error.main,
+              }}
+            />
+            <Typography variant='body2' sx={{ fontWeight: 600 }}>
+              {shiftInfo.status === 'open'
+                ? `Shift Open · ${shiftInfo.openedBy || 'Unassigned'} · ${
+                    shiftInfo.branchId
+                      ? getBranchById(shiftInfo.branchId).code
+                      : 'No branch'
+                  }`
+                : 'Shift Closed'}
+            </Typography>
+          </Stack>
 
           <UserMenu
             anchorEl={anchorEl}

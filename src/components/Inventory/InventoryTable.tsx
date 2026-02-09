@@ -155,7 +155,7 @@ export const InventoryTable = ({
                 <Delete fontSize='small' />
               </IconButton>
             </Tooltip>
-            <Tooltip title='More'>
+            <Tooltip title='Branch availability'>
               <IconButton
                 size='small'
                 onClick={() => onMore?.(row.original)}

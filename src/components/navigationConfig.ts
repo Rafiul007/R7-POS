@@ -21,9 +21,24 @@ export const navigationItems: NavigationItem[] = [
     path: '/products',
   },
   {
+    text: 'Branch Search',
+    iconName: 'Search',
+    path: '/branch-search',
+  },
+  {
     text: 'Payments',
     iconName: 'Payment',
     path: '/payments',
+  },
+  {
+    text: 'Drawer',
+    iconName: 'AccountBalanceWallet',
+    path: '/drawer',
+  },
+  {
+    text: 'Bulk Upload',
+    iconName: 'UploadFile',
+    path: '/bulk-upload',
   },
 ];
 

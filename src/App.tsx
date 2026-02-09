@@ -1,11 +1,14 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { DashboardLayout } from './components';
+import { AlertProvider, DashboardLayout } from './components';
 import {
   Home,
   Products,
   Inventory,
+  BranchSearch,
   Payments,
   CartPayment,
+  Drawer,
+  BulkUpload,
   Login,
   Signup,
 } from './pages';
@@ -13,9 +16,11 @@ import { AuthProvider, ProtectedRoute, useAuth } from './auth';
 
 function App() {
   return (
-    <AuthProvider>
-      <AppRoutes />
-    </AuthProvider>
+    <AlertProvider>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </AlertProvider>
   );
 }
 
@@ -43,7 +48,10 @@ const AppRoutes = () => {
       <Route path='/' element={withDashboard(<Home />)} />
       <Route path='/products' element={withDashboard(<Products />)} />
       <Route path='/inventory' element={withDashboard(<Inventory />)} />
+      <Route path='/branch-search' element={withDashboard(<BranchSearch />)} />
       <Route path='/payments' element={withDashboard(<Payments />)} />
+      <Route path='/drawer' element={withDashboard(<Drawer />)} />
+      <Route path='/bulk-upload' element={withDashboard(<BulkUpload />)} />
       <Route path='/cart-payment' element={withDashboard(<CartPayment />)} />
       <Route
         path='*'
