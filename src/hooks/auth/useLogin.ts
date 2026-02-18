@@ -11,7 +11,6 @@ export const useLogin = () => {
     onSuccess: data => {
       setAuthTokens({
         accessToken: data.accessToken,
-        refreshToken: data.refreshToken,
       });
       queryClient.invalidateQueries();
     },

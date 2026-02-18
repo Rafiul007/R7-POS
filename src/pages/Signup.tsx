@@ -17,7 +17,6 @@ export const Signup = () => {
   const handleSignup = () => {
     login({
       accessToken: 'mock-access-token',
-      refreshToken: 'mock-refresh-token',
     });
     navigate('/');
   };

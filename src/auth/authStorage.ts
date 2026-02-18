@@ -1,16 +1,11 @@
-const ACCESS_TOKEN_KEY = 'pos_access_token';
-const REFRESH_TOKEN_KEY = 'pos_refresh_token';
+const ACCESS_TOKEN_KEY = 'access_token';
 
 export const getAccessToken = () => localStorage.getItem(ACCESS_TOKEN_KEY);
 
-export const getRefreshToken = () => localStorage.getItem(REFRESH_TOKEN_KEY);
-
-export const setTokens = (accessToken: string, refreshToken: string) => {
+export const setTokens = (accessToken: string) => {
   localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-  localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
 };
 
 export const clearTokens = () => {
   localStorage.removeItem(ACCESS_TOKEN_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
 };

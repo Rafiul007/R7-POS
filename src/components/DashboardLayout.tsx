@@ -17,7 +17,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { DrawerContent } from './DrawerContent';
 import { UserMenu } from './UserMenu';
-import { useAuth } from '../auth';
+import { useLogout } from '../hooks/auth/useLogout';
 import { getShiftStatus } from '../utils/drawer';
 import { getBranchById } from '../data/branches';
 
@@ -34,7 +34,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const logoutMutation = useLogout();
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -62,8 +62,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   };
 
   const handleLogout = () => {
-    logout();
     setAnchorEl(null);
+    logoutMutation.mutate();
     navigate('/login');
   };
 
