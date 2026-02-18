@@ -1,31 +1,41 @@
 import { useMemo, useState } from 'react';
-import { AuthContext } from './authContext';
+import { AuthContext, type AuthTokens } from './authContext';
 import {
   getAccessToken,
-  setAccessToken,
-  clearAccessToken,
+  getRefreshToken,
+  setTokens,
+  clearTokens,
 } from './authStorage';
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [token, setToken] = useState<string | null>(getAccessToken());
+  const [accessToken, setAccessTokenState] = useState<string | null>(
+    getAccessToken()
+  );
+  const [refreshToken, setRefreshTokenState] = useState<string | null>(
+    getRefreshToken()
+  );
 
-  const login = (newToken = 'mock-access-token') => {
-    setAccessToken(newToken);
-    setToken(newToken);
+  const login = (tokens: AuthTokens) => {
+    setTokens(tokens.accessToken, tokens.refreshToken);
+    setAccessTokenState(tokens.accessToken);
+    setRefreshTokenState(tokens.refreshToken);
   };
 
   const logout = () => {
-    clearAccessToken();
-    setToken(null);
+    clearTokens();
+    setAccessTokenState(null);
+    setRefreshTokenState(null);
   };
 
   const value = useMemo(
     () => ({
-      isAuthenticated: Boolean(token),
+      isAuthenticated: Boolean(accessToken),
+      accessToken,
+      refreshToken,
       login,
       logout,
     }),
-    [token]
+    [accessToken, refreshToken]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

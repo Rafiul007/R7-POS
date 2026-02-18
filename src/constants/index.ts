@@ -17,5 +17,6 @@ export const ROUTES = {
   LOGIN: '/login',
 };
 
+export * from './messages';
 export * from './input-field-constant';
 export * from './validation-schema';

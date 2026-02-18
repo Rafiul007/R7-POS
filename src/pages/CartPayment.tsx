@@ -42,6 +42,8 @@ import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { selectCartItems, selectCartTotalPrice } from '../store/selectors';
 import { clearCart } from '../store/cartSlice';
 import { Receipt, type ReceiptData } from '../components/Receipt';
+import { useAlert } from '../hooks';
+import { MESSAGES } from '../constants';
 
 interface PaymentMethod {
   id: string;
@@ -57,6 +59,7 @@ interface PaymentMethod {
 export const CartPayment = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const { showAlert } = useAlert();
   const cartItems = useAppSelector(selectCartItems);
   const totalPrice = useAppSelector(selectCartTotalPrice);
 
@@ -129,7 +132,7 @@ export const CartPayment = () => {
       setDiscount(20);
     } else {
       setDiscount(0);
-      alert('Invalid coupon code');
+      showAlert({ message: MESSAGES.CART.COUPON_INVALID, severity: 'warning' });
     }
   };
 
@@ -192,27 +195,37 @@ export const CartPayment = () => {
       (customerInfo.type === 'walk-in' && !customerInfo.name) ||
       !customerInfo.phone
     ) {
-      alert(
-        customerInfo.type === 'walk-in'
-          ? 'Please fill in customer name and phone number'
-          : 'Please fill in customer phone number'
-      );
+      showAlert({
+        message:
+          customerInfo.type === 'walk-in'
+            ? MESSAGES.PAYMENT.MISSING_CUSTOMER
+            : MESSAGES.PAYMENT.MISSING_PHONE,
+        severity: 'warning',
+      });
       return;
     }
 
     // Validate payment amounts with tolerance for floating point errors
     const tolerance = 0.01;
     if (totalPaid < finalTotal - tolerance) {
-      alert(
-        `Payment amount ($${totalPaid.toFixed(2)}) is less than total ($${finalTotal.toFixed(2)})`
-      );
+      showAlert({
+        message: MESSAGES.PAYMENT.AMOUNT_LESS(
+          totalPaid.toFixed(2),
+          finalTotal.toFixed(2)
+        ),
+        severity: 'error',
+      });
       return;
     }
 
     if (totalPaid > finalTotal + tolerance) {
-      alert(
-        `Payment amount ($${totalPaid.toFixed(2)}) exceeds total ($${finalTotal.toFixed(2)})`
-      );
+      showAlert({
+        message: MESSAGES.PAYMENT.AMOUNT_MORE(
+          totalPaid.toFixed(2),
+          finalTotal.toFixed(2)
+        ),
+        severity: 'error',
+      });
       return;
     }
 
@@ -223,7 +236,10 @@ export const CartPayment = () => {
         payment.saved &&
         (!payment.cardNumber || !payment.expiryDate || !payment.cvv)
       ) {
-        alert('Please fill in all card details for card payments');
+        showAlert({
+          message: MESSAGES.PAYMENT.CARD_DETAILS_REQUIRED,
+          severity: 'warning',
+        });
         return;
       }
     }
@@ -307,9 +323,11 @@ export const CartPayment = () => {
     dispatch(clearCart());
 
     // Process payment logic here
-    alert(
-      `Payment processed successfully!\nTotal: $${finalTotal.toFixed(2)}\nReference: ${transactionRef}`
-    );
+    showAlert({
+      message: MESSAGES.PAYMENT.SUCCESS(finalTotal.toFixed(2), transactionRef),
+      severity: 'success',
+      duration: 4500,
+    });
     if (receiptOptions.print) {
       setTimeout(() => {
         window.print();

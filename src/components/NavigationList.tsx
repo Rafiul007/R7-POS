@@ -6,7 +6,15 @@ import {
   ListItemIcon,
   ListItemText,
 } from '@mui/material';
-import { Home, Inventory, ShoppingCart, Payment } from '@mui/icons-material';
+import {
+  Home,
+  Inventory,
+  ShoppingCart,
+  Payment,
+  AccountBalanceWallet,
+  UploadFile,
+  Search,
+} from '@mui/icons-material';
 import { useLocation } from 'react-router-dom';
 import { navigationItems } from './navigationConfig';
 
@@ -19,6 +27,9 @@ const iconMap = {
   Inventory,
   ShoppingCart,
   Payment,
+  AccountBalanceWallet,
+  UploadFile,
+  Search,
 };
 
 export const NavigationList: React.FC<NavigationListProps> = ({

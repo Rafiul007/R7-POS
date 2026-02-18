@@ -1,8 +1,10 @@
 import axios from 'axios';
+import { getAccessToken, clearTokens } from '../auth/authStorage';
 
 const axiosInstance = axios.create({
-  baseURL: process.env.VITE_API_BASE_URL || 'http://localhost:3000/api', // Adjust base URL as needed
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   timeout: 10000,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -12,7 +14,7 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   config => {
     // Add auth token if available
-    const token = localStorage.getItem('authToken');
+    const token = getAccessToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -30,7 +32,7 @@ axiosInstance.interceptors.response.use(
     // Handle errors globally
     if (error.response?.status === 401) {
       // Handle unauthorized
-      localStorage.removeItem('authToken');
+      clearTokens();
       // Redirect to login if needed
     }
     return Promise.reject(error);

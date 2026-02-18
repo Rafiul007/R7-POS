@@ -23,6 +23,9 @@ import {
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { selectCartItems, selectCartTotalPrice } from '../store/selectors';
 import { updateQuantity, removeItem, clearCart } from '../store/cartSlice';
+import { useAlert } from '../hooks';
+import { MESSAGES } from '../constants';
+import { isShiftOpen } from '../utils/drawer';
 
 interface CartModalProps {
   open: boolean;
@@ -37,10 +40,19 @@ export const CartModal: React.FC<CartModalProps> = ({
 }) => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
+  const { showAlert } = useAlert();
   const cartItems = useAppSelector(selectCartItems);
   const totalPrice = useAppSelector(selectCartTotalPrice);
 
   const handleQuantityChange = (productId: string, newQuantity: number) => {
+    const current = cartItems.find(item => item.product.id === productId);
+    if (current && newQuantity > current.quantity && !isShiftOpen()) {
+      showAlert({
+        message: MESSAGES.DRAWER.SHIFT_REQUIRED,
+        severity: 'warning',
+      });
+      return;
+    }
     if (newQuantity <= 0) {
       dispatch(removeItem(productId));
     } else {
@@ -50,6 +62,17 @@ export const CartModal: React.FC<CartModalProps> = ({
 
   const handleClearCart = () => {
     dispatch(clearCart());
+  };
+
+  const handleProceedToPayment = () => {
+    if (!isShiftOpen()) {
+      showAlert({
+        message: MESSAGES.DRAWER.SHIFT_REQUIRED,
+        severity: 'warning',
+      });
+      return;
+    }
+    onProceedToPayment();
   };
 
   const subtotal = totalPrice;
@@ -277,7 +300,7 @@ export const CartModal: React.FC<CartModalProps> = ({
               <Button
                 fullWidth
                 variant='contained'
-                onClick={onProceedToPayment}
+                onClick={handleProceedToPayment}
                 startIcon={<PaymentIcon />}
                 sx={{ py: 1.5 }}
               >

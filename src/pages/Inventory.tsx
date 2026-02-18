@@ -1,5 +1,17 @@
-import { useState, useMemo } from 'react';
-import { Box, Typography, IconButton, Tooltip, Stack } from '@mui/material';
+import { useState, useMemo, useEffect } from 'react';
+import {
+  Box,
+  Typography,
+  IconButton,
+  Tooltip,
+  Stack,
+  Paper,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+} from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { Add } from '@mui/icons-material';
 import {
@@ -11,112 +23,29 @@ import {
   type InventoryFiltersState,
 } from '../components/Inventory';
 import type { IProduct } from '../types';
-
-/* ───────────── Mock Data ───────────── */
-
-const sampleInventoryData: IProduct[] = [
-  {
-    id: '1',
-    name: 'Wireless Bluetooth Headphones',
-    sku: 'WH-001',
-    category: 'Electronics',
-    price: 89.99,
-    stock: 15,
-    isActive: true,
-    image: '',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '2',
-    name: 'Organic Coffee Beans',
-    sku: 'CF-002',
-    category: 'Food & Beverage',
-    price: 24.99,
-    stock: 8,
-    isActive: true,
-    image: '',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '3',
-    name: 'Smart Fitness Watch',
-    sku: 'FW-003',
-    category: 'Electronics',
-    price: 199.99,
-    stock: 0,
-    isActive: false,
-    image: '',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '4',
-    name: 'Premium USB-C Cable',
-    sku: 'UB-004',
-    category: 'Accessories',
-    price: 12.99,
-    stock: 3,
-    isActive: true,
-    image: '',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '5',
-    name: 'Portable Phone Charger',
-    sku: 'PC-005',
-    category: 'Electronics',
-    price: 34.99,
-    stock: 25,
-    isActive: true,
-    image: '',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '6',
-    name: 'Desk Lamp LED',
-    sku: 'DL-006',
-    category: 'Office',
-    price: 49.99,
-    stock: 5,
-    isActive: true,
-    image: '',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '7',
-    name: 'Mechanical Keyboard',
-    sku: 'MK-007',
-    category: 'Electronics',
-    price: 129.99,
-    stock: 12,
-    isActive: true,
-    image: '',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '8',
-    name: 'Mouse Wireless',
-    sku: 'MW-008',
-    category: 'Accessories',
-    price: 29.99,
-    stock: 0,
-    isActive: false,
-    image: '',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
+import {
+  getBranchInventoryMap,
+  getBranchMovements,
+  ensureInventoryForProduct,
+  removeInventoryForProduct,
+  upsertBranchStock,
+} from '../data/branchInventoryStore';
+import {
+  getAllProducts,
+  removeProductById,
+  upsertProducts,
+} from '../data/productStore';
+import { getBranchById } from '../data/branches';
+import { useAlert } from '../hooks';
+import { getShiftStatus } from '../utils/drawer';
+import { getCurrentBranchId } from '../data/branchInventoryStore';
 
 /* ───────────── Inventory Page ───────────── */
 
 export const Inventory = () => {
-  const [data, setData] = useState<IProduct[]>(sampleInventoryData);
+  const { showAlert } = useAlert();
+  const [shiftInfo, setShiftInfo] = useState(() => getShiftStatus());
+  const [version, setVersion] = useState(0);
   const [filters, setFilters] = useState<InventoryFiltersState>({
     search: '',
     category: '',
@@ -132,6 +61,16 @@ export const Inventory = () => {
     open: false,
     product: undefined as IProduct | undefined,
   });
+  const branchId = shiftInfo.branchId || getCurrentBranchId() || '';
+
+  const data = useMemo(() => {
+    void version;
+    const stockMap = getBranchInventoryMap(branchId);
+    return getAllProducts().map(product => ({
+      ...product,
+      stock: stockMap.get(product.id) ?? product.stock ?? 0,
+    }));
+  }, [branchId, version]);
   // Get unique categories from data
   const categories = useMemo(() => {
     const cats = data.filter(p => p.category).map(p => p.category as string);
@@ -215,13 +154,15 @@ export const Inventory = () => {
   };
 
   const handleDelete = (product: IProduct) => {
-    console.log('Delete product:', product);
-    // TODO: Implement delete product confirmation
+    removeProductById(product.id);
+    removeInventoryForProduct(product.id);
+    setVersion(prev => prev + 1);
+    window.dispatchEvent(new CustomEvent('inventory-updated'));
+    showAlert({ message: 'Product removed.', severity: 'info' });
   };
 
-  const handleMore = (product: IProduct) => {
-    console.log('More actions for product:', product);
-    // TODO: Implement more actions menu
+  const handleMore = () => {
+    return;
   };
 
   const handleAddProduct = () => {
@@ -229,25 +170,45 @@ export const Inventory = () => {
   };
 
   const handleAddStockSubmit = (newProduct: IProduct) => {
-    setData(prev => [newProduct, ...prev]);
-    console.log('Added new product:', newProduct);
-    // TODO: Replace with API call
+    upsertProducts([newProduct]);
+    ensureInventoryForProduct(newProduct.id, newProduct.stock ?? 0, branchId);
+    setVersion(prev => prev + 1);
+    window.dispatchEvent(new CustomEvent('inventory-updated'));
+    showAlert({ message: 'Product added to inventory.', severity: 'success' });
   };
 
   const handleEditStockSubmit = (newQuantity: number) => {
     if (editStockModal.product) {
-      const updatedData = data.map(p =>
-        p.id === editStockModal.product!.id ? { ...p, stock: newQuantity } : p
+      upsertBranchStock(
+        branchId,
+        editStockModal.product.id,
+        newQuantity,
+        'Manual stock adjustment'
       );
-      setData(updatedData);
-      console.log(
-        'Updated stock for product:',
-        editStockModal.product.name,
-        'to',
-        newQuantity
-      );
+      setVersion(prev => prev + 1);
+      window.dispatchEvent(new CustomEvent('inventory-updated'));
+      showAlert({ message: 'Stock updated.', severity: 'success' });
     }
   };
+
+  useEffect(() => {
+    const handleShiftUpdate = () => {
+      setShiftInfo(getShiftStatus());
+    };
+    window.addEventListener('drawer-shift-updated', handleShiftUpdate);
+    return () =>
+      window.removeEventListener('drawer-shift-updated', handleShiftUpdate);
+  }, []);
+
+  const movements = useMemo(() => {
+    void version;
+    return getBranchMovements(branchId)
+      .filter(movement => movement.type === 'adjustment')
+      .slice(0, 8);
+  }, [branchId, version]);
+
+  const getProductLabel = (productId: string) =>
+    data.find(product => product.id === productId)?.name || productId;
 
   return (
     <Box
@@ -293,6 +254,9 @@ export const Inventory = () => {
             >
               Inventory
             </Typography>
+            <Typography variant='body2' color='text.secondary'>
+              Branch: {getBranchById(branchId).name}
+            </Typography>
           </Stack>
 
           <Tooltip title='Add New Product'>
@@ -335,6 +299,47 @@ export const Inventory = () => {
           onDelete={handleDelete}
           onMore={handleMore}
         />
+
+        <Paper
+          elevation={0}
+          sx={{
+            p: 2,
+            borderRadius: 0,
+            border: '1px solid',
+            borderColor: 'divider',
+          }}
+        >
+          <Typography variant='subtitle2' fontWeight={700} sx={{ mb: 2 }}>
+            Recent Stock Adjustments
+          </Typography>
+          <Table size='small'>
+            <TableHead>
+              <TableRow>
+                <TableCell>Product</TableCell>
+                <TableCell>Change</TableCell>
+                <TableCell>Reason</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {movements.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={3}>No adjustments yet.</TableCell>
+                </TableRow>
+              ) : (
+                movements.map(movement => (
+                  <TableRow key={movement.id}>
+                    <TableCell>{getProductLabel(movement.productId)}</TableCell>
+                    <TableCell>
+                      {movement.quantity > 0 ? '+' : ''}
+                      {movement.quantity}
+                    </TableCell>
+                    <TableCell>{movement.reason || movement.type}</TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </Paper>
 
         {/* Add Stock Modal */}
         <AddStockModal
