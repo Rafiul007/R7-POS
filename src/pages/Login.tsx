@@ -8,19 +8,57 @@ import {
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { useAuth } from '../auth';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
 import { useAlert } from '../hooks';
 import { MESSAGES } from '../constants';
+import { useLogin } from '../hooks/auth/useLogin';
+
+const loginSchema = yup.object({
+  email: yup
+    .string()
+    .trim()
+    .email('Enter a valid email address.')
+    .required('Email is required.'),
+  password: yup.string().required('Password is required.'),
+});
+
+type LoginFormValues = yup.InferType<typeof loginSchema>;
 
 export const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
   const { showAlert } = useAlert();
+  const loginMutation = useLogin();
 
-  const handleLogin = () => {
-    login();
-    showAlert({ message: MESSAGES.AUTH.LOGIN_SUCCESS, severity: 'success' });
-    navigate('/');
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormValues>({
+    resolver: yupResolver(loginSchema),
+    mode: 'onChange',
+  });
+
+  const handleLogin = (values: LoginFormValues) => {
+    loginMutation.mutate(
+      { email: values.email, password: values.password },
+      {
+        onSuccess: () => {
+          showAlert({
+            message: MESSAGES.AUTH.LOGIN_SUCCESS,
+            severity: 'success',
+          });
+          navigate('/');
+        },
+        onError: () => {
+          showAlert({
+            message: MESSAGES.AUTH.LOGIN_FAILED,
+            severity: 'error',
+          });
+        },
+      }
+    );
   };
 
   return (
@@ -45,20 +83,15 @@ export const Login = () => {
              theme.palette.primary.main,
              0.08
            )} 0%, ${alpha(theme.palette.info.main, 0)} 55%)`,
-        '& .MuiTypography-root': {
-          fontFamily: '"Space Grotesk", "Helvetica", "Arial", sans-serif',
-        },
       }}
     >
       <Paper
         sx={{
           width: '100%',
           maxWidth: 960,
-          p: 0,
           borderRadius: 0,
           border: '1px solid',
           borderColor: 'divider',
-          textAlign: 'left',
           boxShadow: '0 10px 40px rgba(15, 23, 42, 0.08)',
         }}
       >
@@ -68,66 +101,55 @@ export const Login = () => {
             gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
           }}
         >
-          <Box
-            sx={{
-              p: { xs: 4, md: 6 },
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              gap: 2,
-            }}
-          >
-            <Box
-              sx={{
-                width: 52,
-                height: 52,
-                display: 'grid',
-                placeItems: 'center',
-                borderRadius: 0,
-                border: '1px solid',
-                borderColor: 'divider',
-                bgcolor: 'primary.main',
-                color: 'primary.contrastText',
-                fontWeight: 700,
-                fontSize: 16,
-              }}
-            >
-              R7
-            </Box>
-            <Typography variant='overline' sx={{ letterSpacing: '0.2em' }}>
-              Welcome back
-            </Typography>
+          <Box sx={{ p: { xs: 4, md: 6 } }}>
             <Typography variant='h4' fontWeight={600}>
               Sign in to R7-POS.
             </Typography>
-            <Typography variant='body2' color='text.secondary'>
-              Access sales, inventory, and payments in one place.
-            </Typography>
           </Box>
+
           <Box
             sx={{
               p: { xs: 4, md: 6 },
               borderLeft: { xs: 'none', md: '1px solid' },
               borderColor: 'divider',
-              backgroundColor: theme => theme.palette.background.paper,
             }}
           >
-            <Stack spacing={2}>
-              <TextField label='Email' type='email' fullWidth size='small' />
+            <Stack
+              component='form'
+              spacing={2}
+              noValidate
+              onSubmit={handleSubmit(handleLogin)}
+            >
+              <TextField
+                label='Email'
+                type='email'
+                size='small'
+                autoComplete='email'
+                error={Boolean(errors.email)}
+                helperText={errors.email?.message}
+                {...register('email')}
+              />
+
               <TextField
                 label='Password'
                 type='password'
-                fullWidth
                 size='small'
+                autoComplete='current-password'
+                error={Boolean(errors.password)}
+                helperText={errors.password?.message}
+                {...register('password')}
               />
+
               <Button
+                type='submit'
                 variant='contained'
                 size='large'
                 sx={{ borderRadius: 0 }}
-                onClick={handleLogin}
+                disabled={loginMutation.isPending}
               >
-                Sign In
+                {loginMutation.isPending ? 'Signing in...' : 'Sign In'}
               </Button>
+
               <Button
                 component={RouterLink}
                 to='/signup'

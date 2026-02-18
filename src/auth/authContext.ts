@@ -1,8 +1,15 @@
 import { createContext } from 'react';
 
+export type AuthTokens = {
+  accessToken: string;
+  refreshToken: string;
+};
+
 export interface AuthContextValue {
   isAuthenticated: boolean;
-  login: (token?: string) => void;
+  accessToken: string | null;
+  refreshToken: string | null;
+  login: (tokens: AuthTokens) => void;
   logout: () => void;
 }
 

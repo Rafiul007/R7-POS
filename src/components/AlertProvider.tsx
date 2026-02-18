@@ -64,9 +64,9 @@ export const AlertProvider = ({ children }: { children: React.ReactNode }) => {
         open={Boolean(active)}
         autoHideDuration={active?.duration}
         onClose={handleClose}
-        onExited={handleExited}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         TransitionComponent={Slide}
+        TransitionProps={{ onExited: handleExited }}
         sx={{ mt: 2, mr: 2 }}
       >
         {active ? (

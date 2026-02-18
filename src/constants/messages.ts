@@ -2,6 +2,7 @@ export const MESSAGES = {
   AUTH: {
     LOGIN_SUCCESS: 'Signed in successfully.',
     LOGOUT_SUCCESS: 'Signed out successfully.',
+    LOGIN_FAILED: 'Invalid email or password.',
   },
   CART: {
     COUPON_INVALID: 'Invalid coupon code.',
