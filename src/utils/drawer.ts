@@ -2,10 +2,23 @@ import type { IProduct } from '../types';
 
 export const SHIFT_STORAGE_KEY = 'pos.drawer.shift.v1';
 
+interface StoredBranch {
+  branchName: string;
+  branchLocation?: string;
+  branchManagerId?: string;
+}
+
+interface StoredDrawer {
+  drawerName: string;
+  branchId: string;
+}
+
 interface StoredShift {
   id: string;
   status: 'open' | 'closed';
-  branchId: string;
+  branch?: StoredBranch;
+  drawer?: StoredDrawer;
+  branchId?: string;
   openedAt: string;
   openedBy: string;
   openingCash: number;
@@ -36,13 +49,13 @@ export const getShiftStatus = () => {
       return {
         status: 'open' as const,
         openedBy: parsed.shift.openedBy,
-        branchId: parsed.shift.branchId,
+        branchId: parsed.shift.drawer?.branchId || parsed.shift.branchId,
       };
     }
     return {
       status: 'closed' as const,
       openedBy: parsed.shift?.openedBy,
-      branchId: parsed.shift?.branchId,
+      branchId: parsed.shift?.drawer?.branchId || parsed.shift?.branchId,
     };
   } catch {
     return {
