@@ -1,8 +1,9 @@
-import { branches, getBranchById } from '../../data/branches';
+import { branches } from '../../data/branches';
 import { getDrawersByBranchId } from '../../data/drawers';
 import type {
   CloseShiftFormState,
   OpenShiftFormState,
+  ShiftData,
   ShiftTotals,
 } from './types';
 
@@ -13,7 +14,6 @@ export const createInitialOpenForm = (): OpenShiftFormState => {
   return {
     branchId,
     drawerId,
-    openedBy: '',
     openingCash: '0',
     notes: '',
   };
@@ -42,15 +42,6 @@ export const getShiftTotals = (
     totalIn,
     totalOut,
     expectedCash: openingCash + cashSales + totalIn - totalOut,
-  };
-};
-
-export const normalizeShiftBranch = (branchId: string) => {
-  const branch = getBranchById(branchId);
-
-  return {
-    branchName: branch.name,
-    branchLocation: branch.city,
   };
 };
 

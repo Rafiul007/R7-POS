@@ -35,7 +35,6 @@ export interface ShiftData {
 export interface OpenShiftFormState {
   branchId: string;
   drawerId: string;
-  openedBy: string;
   openingCash: string;
   notes: string;
 }

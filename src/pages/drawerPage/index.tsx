@@ -2,19 +2,15 @@ import { useEffect, useMemo, useState } from 'react';
 import { Box, Chip, Stack, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { Lock, LockOpen } from '@mui/icons-material';
+import { openShift as openShiftApi } from '../../api/shift/shiftApi';
 import { useAlert } from '../../hooks';
 import { MESSAGES } from '../../constants';
-import { getDrawerById, getDrawersByBranchId } from '../../data/drawers';
-import {
-  getCurrentBranchId,
-  setCurrentBranchId,
-} from '../../data/branchInventoryStore';
+import { setCurrentBranchId } from '../../data/branchInventoryStore';
 import {
   createCloseForm,
   createInitialOpenForm,
   getShiftTotals,
   mergeShiftNotes,
-  normalizeShiftBranch,
 } from './helpers';
 import { loadDrawerState, saveDrawerState } from './storage';
 import type { CashMovement, CashFormState, ShiftData } from './types';
@@ -24,6 +20,8 @@ import { CloseShiftDialog } from './CloseShiftDialog';
 import { ControlsCard } from './ControlsCard';
 import { OpenShiftDialog } from './OpenShiftDialog';
 import { ShiftSummaryCard } from './ShiftSummaryCard';
+import { useDrawersQuery } from '../../hooks/shifts/useDrawers';
+import { useBranchesQuery } from '../../hooks/shifts/useBranches';
 
 const initialCashForm: CashFormState = {
   amount: '',
@@ -36,14 +34,23 @@ export const Drawer = () => {
   const [openShiftDialog, setOpenShiftDialog] = useState(false);
   const [cashDialog, setCashDialog] = useState<null | 'in' | 'out'>(null);
   const [closeShiftDialog, setCloseShiftDialog] = useState(false);
+  const [isOpeningShift, setIsOpeningShift] = useState(false);
   const [openForm, setOpenForm] = useState(() => {
-    const branchId = getCurrentBranchId() || createInitialOpenForm().branchId;
     return {
       ...createInitialOpenForm(),
-      branchId,
-      drawerId: getDrawersByBranchId(branchId)[0]?.id || '',
+      branchId: '',
+      drawerId: '',
     };
   });
+  const canLoadOpenShiftOptions = openShiftDialog && shift?.status !== 'open';
+  const shouldLoadDrawers = canLoadOpenShiftOptions && Boolean(openForm.branchId);
+  const { data: branches = [], isLoading: isBranchesLoading } =
+    useBranchesQuery(canLoadOpenShiftOptions);
+  const { data: drawers = [], isLoading: isDrawersLoading } = useDrawersQuery(
+    openForm.branchId,
+    shouldLoadDrawers
+  );
+
   const [cashForm, setCashForm] = useState(initialCashForm);
   const [closeForm, setCloseForm] = useState(createCloseForm);
 
@@ -56,41 +63,99 @@ export const Drawer = () => {
   }, [shift]);
 
   const totals = useMemo(() => getShiftTotals(shift, moves), [moves, shift]);
-  const availableDrawers = useMemo(
-    () => getDrawersByBranchId(openForm.branchId),
-    [openForm.branchId]
-  );
 
-  const handleOpenShift = () => {
-    const openingCash = Number(openForm.openingCash || 0);
-    const drawer = getDrawerById(openForm.drawerId);
-    if (!openForm.openedBy.trim() || !openForm.branchId || !drawer) return;
+  const availableDrawers = useMemo(() => drawers, [drawers]);
 
-    const newShift: ShiftData = {
-      id: `shift_${Date.now()}`,
-      status: 'open',
-      branch: normalizeShiftBranch(openForm.branchId),
-      drawer: {
-        drawerName: drawer.drawerName,
-        branchId: drawer.branchId,
-      },
-      openedAt: new Date().toISOString(),
-      openedBy: openForm.openedBy.trim(),
-      openingCash: Math.max(0, openingCash),
-      cashSales: 0,
-      notes: openForm.notes.trim() || undefined,
-    };
+  useEffect(() => {
+    if (!openForm.branchId) return;
 
-    setState({ shift: newShift, moves: [] });
-    setCurrentBranchId(openForm.branchId);
+    const drawerStillValid = availableDrawers.some(
+      drawer => drawer.id === openForm.drawerId
+    );
+
+    if (!drawerStillValid) {
+      setOpenForm(prev => ({
+        ...prev,
+        drawerId: availableDrawers[0]?.id || '',
+      }));
+    }
+  }, [availableDrawers, openForm.branchId, openForm.drawerId]);
+
+  const handleOpenShiftDialog = () => {
+    if (shift?.status === 'open') return;
+
     setOpenForm(prev => ({
       ...prev,
-      openedBy: '',
-      openingCash: '0',
-      notes: '',
+      branchId: '',
+      drawerId: '',
     }));
-    setOpenShiftDialog(false);
-    showAlert({ message: MESSAGES.DRAWER.SHIFT_OPENED, severity: 'success' });
+    setOpenShiftDialog(true);
+  };
+
+  const handleOpenShift = async () => {
+    const openingCash = Number(openForm.openingCash || 0);
+    const branch = branches.find(item => item.id === openForm.branchId);
+    const drawer = availableDrawers.find(item => item.id === openForm.drawerId);
+
+    if (!branch || !openForm.branchId || !drawer) return;
+
+    try {
+      setIsOpeningShift(true);
+
+      const response = await openShiftApi({
+        branchName: branch.name,
+        drawerId: drawer.id,
+        openingCash: Math.max(0, openingCash),
+        notes: openForm.notes.trim() || undefined,
+      });
+
+      const newShift: ShiftData = {
+        id: response._id,
+        status: response.status,
+        branch: response.branch,
+        drawer: response.drawer,
+        openedAt: response.openedAt,
+        openedBy: response.openedBy,
+        openingCash: response.openingCash,
+        cashSales: response.cashSalesTotal,
+        notes: response.notes,
+      };
+
+      setState({ shift: newShift, moves: [] });
+      setCurrentBranchId(openForm.branchId);
+
+      setOpenForm(prev => ({
+        ...prev,
+        openingCash: '0',
+        notes: '',
+      }));
+
+      setOpenShiftDialog(false);
+      showAlert({
+        message: MESSAGES.DRAWER.SHIFT_OPENED,
+        severity: 'success',
+      });
+    } catch (error) {
+      const message =
+        typeof error === 'object' &&
+        error !== null &&
+        'response' in error &&
+        typeof error.response === 'object' &&
+        error.response !== null &&
+        'data' in error.response &&
+        typeof error.response.data === 'object' &&
+        error.response.data !== null &&
+        'message' in error.response.data &&
+        typeof error.response.data.message === 'string'
+          ? error.response.data.message
+          : error instanceof Error
+            ? error.message
+            : 'Unable to open shift.';
+
+      showAlert({ message, severity: 'error' });
+    } finally {
+      setIsOpeningShift(false);
+    }
   };
 
   const handleAddMovement = () => {
@@ -111,6 +176,7 @@ export const Drawer = () => {
     setState(prev => ({ shift: prev.shift, moves: [next, ...prev.moves] }));
     setCashForm(initialCashForm);
     setCashDialog(null);
+
     showAlert({
       message:
         cashDialog === 'out'
@@ -135,7 +201,11 @@ export const Drawer = () => {
     setState(prev => ({ shift: closedShift, moves: prev.moves }));
     setCloseForm(createCloseForm());
     setCloseShiftDialog(false);
-    showAlert({ message: MESSAGES.DRAWER.SHIFT_CLOSED, severity: 'success' });
+
+    showAlert({
+      message: MESSAGES.DRAWER.SHIFT_CLOSED,
+      severity: 'success',
+    });
   };
 
   const handleCashSalesUpdate = (value: string) => {
@@ -175,7 +245,11 @@ export const Drawer = () => {
           gap: 3,
         }}
       >
-        <Stack direction='row' alignItems='center' justifyContent='space-between'>
+        <Stack
+          direction='row'
+          alignItems='center'
+          justifyContent='space-between'
+        >
           <Stack spacing={1}>
             <Typography
               variant='overline'
@@ -187,6 +261,7 @@ export const Drawer = () => {
               Cash drawer & shift management
             </Typography>
           </Stack>
+
           <Chip
             icon={shift?.status === 'open' ? <LockOpen /> : <Lock />}
             label={shift?.status === 'open' ? 'Shift Open' : 'Shift Closed'}
@@ -213,7 +288,7 @@ export const Drawer = () => {
           <ControlsCard
             isShiftOpen={shift?.status === 'open'}
             cashSales={shift?.cashSales}
-            onOpenShift={() => setOpenShiftDialog(true)}
+            onOpenShift={handleOpenShiftDialog}
             onCloseShift={() => setCloseShiftDialog(true)}
             onCashIn={() => setCashDialog('in')}
             onCashOut={() => setCashDialog('out')}
@@ -231,6 +306,7 @@ export const Drawer = () => {
       <OpenShiftDialog
         open={openShiftDialog}
         form={openForm}
+        availableBranches={branches}
         availableDrawers={availableDrawers}
         onClose={() => setOpenShiftDialog(false)}
         onBranchChange={branchId => {
@@ -238,20 +314,20 @@ export const Drawer = () => {
           setOpenForm(prev => ({
             ...prev,
             branchId,
-            drawerId: getDrawersByBranchId(branchId)[0]?.id || '',
+            drawerId: '',
           }));
         }}
         onDrawerChange={drawerId =>
           setOpenForm(prev => ({ ...prev, drawerId }))
-        }
-        onOpenedByChange={openedBy =>
-          setOpenForm(prev => ({ ...prev, openedBy }))
         }
         onOpeningCashChange={openingCash =>
           setOpenForm(prev => ({ ...prev, openingCash }))
         }
         onNotesChange={notes => setOpenForm(prev => ({ ...prev, notes }))}
         onSubmit={handleOpenShift}
+        isSubmitting={isOpeningShift}
+        isBranchesLoading={isBranchesLoading}
+        isDrawersLoading={isDrawersLoading}
       />
 
       <CashMovementDialog
