@@ -79,7 +79,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           background: `linear-gradient(
             135deg,
             ${theme.palette.primary.dark},
-            ${theme.palette.primary.main}
+            ${theme.palette.secondary.main}
           )`,
         }}
       >
@@ -141,7 +141,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             display: { xs: 'block', md: 'none' },
             '& .MuiDrawer-paper': {
               width: DRAWER_WIDTH,
-              background: `linear-gradient(180deg, #1976d2, #2196f3)`,
+              background: `linear-gradient(
+                180deg,
+                ${theme.palette.primary.main},
+                ${theme.palette.secondary.main}
+              )`,
               color: '#fff',
             },
           }}
@@ -159,7 +163,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               width: DRAWER_WIDTH,
               top: APP_BAR_HEIGHT,
               height: `calc(100% - ${APP_BAR_HEIGHT}px)`,
-              background: `linear-gradient(180deg, #1976d2, #2196f3)`,
+              background: `linear-gradient(
+                180deg,
+                ${theme.palette.primary.main},
+                ${theme.palette.secondary.main}
+              )`,
               color: '#fff',
               borderRight: 'none',
             },

@@ -16,9 +16,9 @@ interface CloseShiftDialogProps {
   expectedCash: number;
   onClose: () => void;
   onCountedCashChange: (value: string) => void;
-  onClosedByChange: (value: string) => void;
   onNotesChange: (value: string) => void;
   onSubmit: () => void;
+  isSubmitting?: boolean;
 }
 
 export const CloseShiftDialog = ({
@@ -27,9 +27,9 @@ export const CloseShiftDialog = ({
   expectedCash,
   onClose,
   onCountedCashChange,
-  onClosedByChange,
   onNotesChange,
   onSubmit,
+  isSubmitting = false,
 }: CloseShiftDialogProps) => (
   <Dialog open={open} onClose={onClose} fullWidth maxWidth='sm'>
     <DialogTitle>Close shift</DialogTitle>
@@ -52,13 +52,6 @@ export const CloseShiftDialog = ({
       />
 
       <TextField
-        label='Closed by'
-        value={form.closedBy}
-        onChange={event => onClosedByChange(event.target.value)}
-        fullWidth
-      />
-
-      <TextField
         label='Notes (optional)'
         value={form.notes}
         onChange={event => onNotesChange(event.target.value)}
@@ -68,9 +61,15 @@ export const CloseShiftDialog = ({
       />
     </DialogContent>
     <DialogActions>
-      <Button onClick={onClose}>Cancel</Button>
-      <Button variant='contained' onClick={onSubmit}>
-        Close
+      <Button onClick={onClose} disabled={isSubmitting}>
+        Cancel
+      </Button>
+      <Button
+        variant='contained'
+        onClick={onSubmit}
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? 'Closing...' : 'Close'}
       </Button>
     </DialogActions>
   </Dialog>

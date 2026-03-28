@@ -20,6 +20,7 @@ import { CloseShiftDialog } from './CloseShiftDialog';
 import { ControlsCard } from './ControlsCard';
 import { OpenShiftDialog } from './OpenShiftDialog';
 import { ShiftSummaryCard } from './ShiftSummaryCard';
+import { useCloseShift } from '../../hooks/shifts/useCloseShift';
 import { useDrawersQuery } from '../../hooks/shifts/useDrawers';
 import { useBranchesQuery } from '../../hooks/shifts/useBranches';
 
@@ -42,6 +43,8 @@ export const Drawer = () => {
       drawerId: '',
     };
   });
+  const { mutateAsync: closeShiftMutation, isPending: isClosingShift } =
+    useCloseShift();
   const canLoadOpenShiftOptions = openShiftDialog && shift?.status !== 'open';
   const shouldLoadDrawers = canLoadOpenShiftOptions && Boolean(openForm.branchId);
   const { data: branches = [], isLoading: isBranchesLoading } =
@@ -186,26 +189,63 @@ export const Drawer = () => {
     });
   };
 
-  const handleCloseShift = () => {
-    if (!shift || !closeForm.closedBy.trim()) return;
+  const handleCloseShift = async () => {
+    if (!shift) return;
 
-    const closedShift: ShiftData = {
-      ...shift,
-      status: 'closed',
-      closedAt: new Date().toISOString(),
-      closedBy: closeForm.closedBy.trim(),
-      countedCash: Math.max(0, Number(closeForm.countedCash || 0)),
-      notes: mergeShiftNotes(shift.notes, closeForm.notes),
+    const closeShiftPayload = {
+      closingCash: Math.max(0, Number(closeForm.countedCash || 0)),
+      cashSalesTotal: shift.cashSales || 0,
+      notes: closeForm.notes.trim() || undefined,
     };
 
-    setState(prev => ({ shift: closedShift, moves: prev.moves }));
-    setCloseForm(createCloseForm());
-    setCloseShiftDialog(false);
+    try {
+      const response = await closeShiftMutation({
+        shiftId: shift.id,
+        payload: closeShiftPayload,
+      });
 
-    showAlert({
-      message: MESSAGES.DRAWER.SHIFT_CLOSED,
-      severity: 'success',
-    });
+      const closedShift: ShiftData = {
+        ...shift,
+        status: response.status,
+        branch: response.branch,
+        drawer: response.drawer,
+        openedAt: response.openedAt,
+        openedBy: response.openedBy,
+        openingCash: response.openingCash,
+        cashSales: response.cashSalesTotal,
+        closedAt: response.closedAt,
+        closedBy: response.closedBy,
+        countedCash: response.closingCash,
+        notes: response.notes ?? mergeShiftNotes(shift.notes, closeForm.notes),
+      };
+
+      setState(prev => ({ shift: closedShift, moves: prev.moves }));
+      setCloseForm(createCloseForm());
+      setCloseShiftDialog(false);
+
+      showAlert({
+        message: MESSAGES.DRAWER.SHIFT_CLOSED,
+        severity: 'success',
+      });
+    } catch (error) {
+      const message =
+        typeof error === 'object' &&
+        error !== null &&
+        'response' in error &&
+        typeof error.response === 'object' &&
+        error.response !== null &&
+        'data' in error.response &&
+        typeof error.response.data === 'object' &&
+        error.response.data !== null &&
+        'message' in error.response.data &&
+        typeof error.response.data.message === 'string'
+          ? error.response.data.message
+          : error instanceof Error
+            ? error.message
+            : 'Unable to close shift.';
+
+      showAlert({ message, severity: 'error' });
+    }
   };
 
   const handleCashSalesUpdate = (value: string) => {
@@ -348,11 +388,9 @@ export const Drawer = () => {
         onCountedCashChange={countedCash =>
           setCloseForm(prev => ({ ...prev, countedCash }))
         }
-        onClosedByChange={closedBy =>
-          setCloseForm(prev => ({ ...prev, closedBy }))
-        }
         onNotesChange={notes => setCloseForm(prev => ({ ...prev, notes }))}
         onSubmit={handleCloseShift}
+        isSubmitting={isClosingShift}
       />
     </Box>
   );

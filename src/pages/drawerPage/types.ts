@@ -46,7 +46,6 @@ export interface CashFormState {
 
 export interface CloseShiftFormState {
   countedCash: string;
-  closedBy: string;
   notes: string;
 }
 

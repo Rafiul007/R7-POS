@@ -21,7 +21,6 @@ export const createInitialOpenForm = (): OpenShiftFormState => {
 
 export const createCloseForm = (): CloseShiftFormState => ({
   countedCash: '',
-  closedBy: '',
   notes: '',
 });
 

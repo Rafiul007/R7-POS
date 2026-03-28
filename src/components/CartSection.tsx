@@ -23,7 +23,7 @@ export const CartSection: React.FC<CartSectionProps> = ({ onClick }) => {
           alignItems: 'center',
           gap: 2,
           backgroundColor: 'rgba(255, 255, 255, 0.1)',
-          borderRadius: 1,
+          borderRadius: 0,
           mx: 1,
           mb: 1,
           cursor: onClick ? 'pointer' : 'default',
