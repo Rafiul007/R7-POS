@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
   Box,
@@ -14,17 +14,18 @@ import {
   IconButton,
   Paper,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
+  Tooltip,
   Typography,
 } from '@mui/material';
-import { Add, DeleteOutline } from '@mui/icons-material';
+import { alpha } from '@mui/material/styles';
+import { Add, Delete, DeleteOutline, Edit } from '@mui/icons-material';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useFieldArray, useForm } from 'react-hook-form';
+import {
+  MaterialReactTable,
+  useMaterialReactTable,
+  type MRT_ColumnDef,
+} from 'material-react-table';
 import { useAuth } from '../auth';
 import {
   useAlert,
@@ -42,6 +43,7 @@ import {
   toCreateProductPayload,
   type CreateProductFormValues,
 } from './adminProductFormConfig';
+import type { IProduct } from '../types';
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat('en-US', {
@@ -58,6 +60,158 @@ export const AdminProducts = () => {
   const { data: categoryData } = useCategories({ limit: 100 });
   const createProductMutation = useCreateProduct();
   const products = data?.products ?? [];
+  const handleUpdateProduct = useCallback(
+    (product: IProduct) => {
+      showAlert({
+        message: `Update action selected for ${product.name}.`,
+        severity: 'info',
+      });
+    },
+    [showAlert]
+  );
+
+  const handleDeleteProduct = useCallback(
+    (product: IProduct) => {
+      showAlert({
+        message: `Delete action selected for ${product.name}.`,
+        severity: 'warning',
+      });
+    },
+    [showAlert]
+  );
+
+  const columns = useMemo<MRT_ColumnDef<IProduct>[]>(
+    () => [
+      {
+        accessorKey: 'name',
+        header: 'Name',
+        size: 260,
+        Cell: ({ cell }) => (
+          <Typography variant='body2' fontWeight={500}>
+            {cell.getValue<string>()}
+          </Typography>
+        ),
+      },
+      {
+        accessorKey: 'category',
+        header: 'Category',
+        size: 160,
+        Cell: ({ cell }) => (
+          <Chip
+            label={cell.getValue<string>() || 'N/A'}
+            size='small'
+            variant='outlined'
+          />
+        ),
+      },
+      {
+        accessorKey: 'price',
+        header: 'Price',
+        size: 120,
+        Cell: ({ cell }) => (
+          <Typography variant='body2' fontWeight={600}>
+            {formatPrice(cell.getValue<number>())}
+          </Typography>
+        ),
+      },
+      {
+        accessorKey: 'stock',
+        header: 'Stock',
+        size: 100,
+        Cell: ({ cell }) => (
+          <Typography variant='body2'>
+            {cell.getValue<number>() ?? 0}
+          </Typography>
+        ),
+      },
+      {
+        accessorKey: 'isActive',
+        header: 'Status',
+        size: 110,
+        Cell: ({ cell }) => {
+          const isActive = cell.getValue<boolean>();
+
+          return (
+            <Chip
+              size='small'
+              label={isActive ? 'Active' : 'Inactive'}
+              color={isActive ? 'success' : 'default'}
+              variant='outlined'
+            />
+          );
+        },
+      },
+      {
+        id: 'actions',
+        header: 'Actions',
+        size: 120,
+        enableSorting: false,
+        Cell: ({ row }) => (
+          <Stack direction='row' spacing={0.5} justifyContent='flex-end'>
+            <Tooltip title='Update product'>
+              <IconButton
+                size='small'
+                onClick={() => handleUpdateProduct(row.original)}
+                sx={{ color: 'primary.main' }}
+              >
+                <Edit fontSize='small' />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title='Delete product'>
+              <IconButton
+                size='small'
+                onClick={() => handleDeleteProduct(row.original)}
+                sx={{ color: 'error.main' }}
+              >
+                <Delete fontSize='small' />
+              </IconButton>
+            </Tooltip>
+          </Stack>
+        ),
+      },
+    ],
+    [handleDeleteProduct, handleUpdateProduct]
+  );
+  const table = useMaterialReactTable({
+    columns,
+    data: products,
+    state: {
+      isLoading,
+    },
+    enableColumnActions: false,
+    enableColumnResizing: true,
+    enablePagination: true,
+    enableSorting: true,
+    enableTopToolbar: false,
+    columnResizeMode: 'onChange',
+    layoutMode: 'grid',
+    muiTablePaperProps: {
+      elevation: 0,
+      sx: {
+        borderRadius: 0,
+        border: '1px solid',
+        borderColor: 'divider',
+        overflow: 'hidden',
+      },
+    },
+    muiTableContainerProps: {
+      sx: {
+        '& .mrt-table-body-row:hover > td': {
+          backgroundColor: theme => alpha(theme.palette.primary.main, 0.04),
+        },
+      },
+    },
+    muiTableHeadCellProps: {
+      sx: {
+        fontWeight: 600,
+        fontSize: '0.75rem',
+        letterSpacing: '0.12em',
+        textTransform: 'uppercase',
+        color: 'text.secondary',
+      },
+    },
+  });
+
   const categoryOptions = useMemo(() => {
     return (
       categoryData?.categories
@@ -160,49 +314,9 @@ export const AdminProducts = () => {
         ) : isError ? (
           <Alert severity='error'>Failed to load products.</Alert>
         ) : (
-          <TableContainer component={Paper}>
-            <Table size='small'>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Category</TableCell>
-                  <TableCell>Price</TableCell>
-                  <TableCell>Stock</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell align='right'>Action</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {products.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6}>No products found.</TableCell>
-                  </TableRow>
-                ) : (
-                  products.map(product => (
-                    <TableRow key={product.id} hover>
-                      <TableCell>{product.name}</TableCell>
-                      <TableCell>{product.category || '-'}</TableCell>
-                      <TableCell>{formatPrice(product.price)}</TableCell>
-                      <TableCell>{product.stock ?? 0}</TableCell>
-                      <TableCell>
-                        <Chip
-                          size='small'
-                          label={product.isActive ? 'Active' : 'Inactive'}
-                          color={product.isActive ? 'success' : 'default'}
-                          variant='outlined'
-                        />
-                      </TableCell>
-                      <TableCell align='right'>
-                        <Button size='small' variant='outlined'>
-                          Actions
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <Paper sx={{ overflow: 'hidden' }}>
+            <MaterialReactTable table={table} />
+          </Paper>
         )}
       </Stack>
 
