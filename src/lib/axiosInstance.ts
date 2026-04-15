@@ -16,7 +16,13 @@ axiosInstance.interceptors.request.use(
     // Add auth token if available
     const token = getAccessToken();
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      const authorization = `Bearer ${token}`;
+
+      if (typeof config.headers.set === 'function') {
+        config.headers.set('Authorization', authorization);
+      } else {
+        config.headers.Authorization = authorization;
+      }
     }
     return config;
   },

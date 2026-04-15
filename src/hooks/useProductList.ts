@@ -29,6 +29,7 @@ const mapProduct = (product: ApiProduct): IProduct => ({
   price: product.price,
   image: product.images[0] ?? '',
   category: product.category.name,
+  categoryId: product.category._id,
   stock: product.stock,
   description: product.metaTitle || product.category.description,
   sku: product.slug,

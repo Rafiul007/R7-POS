@@ -7,6 +7,7 @@ export interface IProduct {
   discountPrice?: number; // Optional discount price
   image: string; // Image URL or path
   category?: string;
+  categoryId?: string;
   stock?: number;
   description?: string;
   sku?: string; // Stock Keeping Unit

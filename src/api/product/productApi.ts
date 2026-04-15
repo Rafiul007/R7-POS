@@ -1,6 +1,8 @@
 import axiosInstance from '../../lib/axiosInstance';
 
 const PRODUCT_LIST_URL = 'product-catalog/products';
+const PRODUCT_CREATE_URL = 'product-catalog/products/create';
+const CATEGORY_LIST_URL = 'product-catalog/categories';
 
 export type ProductListParams = {
   page?: number;
@@ -22,11 +24,26 @@ export type ProductCategory = {
   __v: number;
 };
 
+export type CategoryListParams = {
+  page?: number;
+  limit?: number;
+};
+
 export type ProductVariant = {
   name: string;
   value: string;
   additionalPrice: number;
   stock: number;
+};
+
+export type CreateProductPayload = {
+  name: string;
+  price: number;
+  stock: number;
+  category: string;
+  images: string[];
+  tags: string[];
+  variants: ProductVariant[];
 };
 
 export type Product = {
@@ -65,10 +82,27 @@ export type ProductListData = {
   pagination: ProductListPagination;
 };
 
+export type CategoryListData = {
+  categories: ProductCategory[];
+  pagination: ProductListPagination;
+};
+
 type ProductListResponse = {
   success: boolean;
   message: string;
   data: ProductListData;
+};
+
+type CategoryListResponse = {
+  success: boolean;
+  message: string;
+  data: CategoryListData;
+};
+
+type CreateProductResponse = {
+  success: boolean;
+  message: string;
+  data: Product | { product: Product };
 };
 
 export const getProductList = async ({
@@ -81,4 +115,26 @@ export const getProductList = async ({
   });
 
   return res.data.data;
+};
+
+export const getCategoryList = async ({
+  page = 1,
+  limit = 20,
+}: CategoryListParams = {}): Promise<CategoryListData> => {
+  const res = await axiosInstance.get<CategoryListResponse>(CATEGORY_LIST_URL, {
+    params: { page, limit },
+  });
+
+  return res.data.data;
+};
+
+export const createProduct = async (
+  payload: CreateProductPayload
+): Promise<CreateProductResponse> => {
+  const res = await axiosInstance.post<CreateProductResponse>(
+    PRODUCT_CREATE_URL,
+    payload
+  );
+
+  return res.data;
 };

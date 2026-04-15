@@ -11,6 +11,8 @@ import {
   BulkUpload,
   Login,
   Signup,
+  AdminActions,
+  AdminProducts,
 } from './pages';
 import { AuthProvider, ProtectedRoute, useAuth } from './auth';
 
@@ -35,6 +37,12 @@ const AppRoutes = () => {
     </ProtectedRoute>
   );
 
+  const withAdminDashboard = (element: React.ReactNode) => (
+    <ProtectedRoute requiredRole='admin'>
+      <DashboardLayout>{element}</DashboardLayout>
+    </ProtectedRoute>
+  );
+
   return (
     <Routes>
       <Route
@@ -53,6 +61,14 @@ const AppRoutes = () => {
       <Route path='/drawer' element={withDashboard(<Drawer />)} />
       <Route path='/bulk-upload' element={withDashboard(<BulkUpload />)} />
       <Route path='/cart-payment' element={withDashboard(<CartPayment />)} />
+      <Route
+        path='/admin/actions'
+        element={withAdminDashboard(<AdminActions />)}
+      />
+      <Route
+        path='/admin/products'
+        element={withAdminDashboard(<AdminProducts />)}
+      />
       <Route
         path='*'
         element={<Navigate to={isAuthenticated ? '/' : '/login'} replace />}
