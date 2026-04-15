@@ -45,7 +45,7 @@ export const theme = createTheme({
     error: colors.error,
     info: colors.info,
     background: {
-      default: '#f5f5f5',
+      default: '#f4f7fb',
       paper: '#ffffff',
     },
   },
@@ -81,7 +81,7 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           textTransform: 'none', // Disable uppercase transformation
-          borderRadius: 0,
+          borderRadius: 8,
           boxShadow: 'none',
           '&:hover': {
             boxShadow: 'none',
@@ -93,12 +93,17 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-root': {
-            borderRadius: 0,
+            borderRadius: 8,
             boxShadow: 'none',
+            backgroundColor: '#ffffff',
             '& fieldset': {
-              borderRadius: 0,
+              borderRadius: 8,
+              borderColor: 'transparent',
             },
             '&:hover fieldset': {
+              borderColor: 'transparent',
+            },
+            '&.Mui-focused fieldset': {
               borderColor: 'primary.main',
             },
           },
@@ -108,37 +113,34 @@ export const theme = createTheme({
     MuiPaper: {
       styleOverrides: {
         root: {
-          borderRadius: 0,
-          boxShadow: 'none',
-          border: '1px solid',
-          borderColor: 'divider',
+          borderRadius: 8,
+          border: 0,
+          boxShadow: '0 18px 45px rgba(15, 23, 42, 0.08)',
         },
       },
     },
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: 0,
-          boxShadow: 'none',
-          border: '1px solid',
-          borderColor: 'divider',
+          borderRadius: 8,
+          border: 0,
+          boxShadow: '0 18px 45px rgba(15, 23, 42, 0.08)',
         },
       },
     },
     MuiChip: {
       styleOverrides: {
         root: {
-          borderRadius: 0,
+          borderRadius: 8,
         },
       },
     },
     MuiAccordion: {
       styleOverrides: {
         root: {
-          borderRadius: 0,
+          borderRadius: 8,
           boxShadow: 'none',
-          border: '1px solid',
-          borderColor: 'divider',
+          border: 0,
           '&:before': {
             display: 'none',
           },

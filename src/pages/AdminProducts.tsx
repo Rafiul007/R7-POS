@@ -1,48 +1,26 @@
 import { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
+  Avatar,
   Box,
   Button,
   Chip,
   CircularProgress,
-  Divider,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Grid,
   IconButton,
-  Paper,
   Stack,
   Tooltip,
   Typography,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import { Add, Delete, DeleteOutline, Edit } from '@mui/icons-material';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useFieldArray, useForm } from 'react-hook-form';
+import { Add, Delete, Edit, Inventory2 } from '@mui/icons-material';
 import {
   MaterialReactTable,
   useMaterialReactTable,
   type MRT_ColumnDef,
 } from 'material-react-table';
 import { useAuth } from '../auth';
-import {
-  useAlert,
-  useCategories,
-  useCreateProduct,
-  useProducts,
-} from '../hooks';
-import { RhfSelect, RhfTextField } from '../components/rhf-component';
-import {
-  createEmptyVariant,
-  createProductDefaultValues,
-  createProductSchema,
-  getCreateProductFields,
-  getCreateProductVariantFields,
-  toCreateProductPayload,
-  type CreateProductFormValues,
-} from './adminProductFormConfig';
+import { useAlert, useCategories, useProducts } from '../hooks';
+import { CreateProductDialog } from './CreateProductDialog';
 import type { IProduct } from '../types';
 
 const formatPrice = (price: number) =>
@@ -58,7 +36,6 @@ export const AdminProducts = () => {
   const [createOpen, setCreateOpen] = useState(false);
   const { data, isError, isLoading } = useProducts({ limit: 100 });
   const { data: categoryData } = useCategories({ limit: 100 });
-  const createProductMutation = useCreateProduct();
   const products = data?.products ?? [];
   const handleUpdateProduct = useCallback(
     (product: IProduct) => {
@@ -100,7 +77,11 @@ export const AdminProducts = () => {
           <Chip
             label={cell.getValue<string>() || 'N/A'}
             size='small'
-            variant='outlined'
+            sx={{
+              backgroundColor: theme => alpha(theme.palette.info.main, 0.1),
+              color: 'info.dark',
+              fontWeight: 600,
+            }}
           />
         ),
       },
@@ -135,8 +116,17 @@ export const AdminProducts = () => {
             <Chip
               size='small'
               label={isActive ? 'Active' : 'Inactive'}
-              color={isActive ? 'success' : 'default'}
-              variant='outlined'
+              sx={{
+                backgroundColor: theme =>
+                  alpha(
+                    isActive
+                      ? theme.palette.success.main
+                      : theme.palette.text.secondary,
+                    0.12
+                  ),
+                color: isActive ? 'success.dark' : 'text.secondary',
+                fontWeight: 700,
+              }}
             />
           );
         },
@@ -152,7 +142,15 @@ export const AdminProducts = () => {
               <IconButton
                 size='small'
                 onClick={() => handleUpdateProduct(row.original)}
-                sx={{ color: 'primary.main' }}
+                sx={{
+                  color: 'primary.main',
+                  backgroundColor: theme =>
+                    alpha(theme.palette.primary.main, 0.08),
+                  '&:hover': {
+                    backgroundColor: theme =>
+                      alpha(theme.palette.primary.main, 0.14),
+                  },
+                }}
               >
                 <Edit fontSize='small' />
               </IconButton>
@@ -161,7 +159,15 @@ export const AdminProducts = () => {
               <IconButton
                 size='small'
                 onClick={() => handleDeleteProduct(row.original)}
-                sx={{ color: 'error.main' }}
+                sx={{
+                  color: 'error.main',
+                  backgroundColor: theme =>
+                    alpha(theme.palette.error.main, 0.08),
+                  '&:hover': {
+                    backgroundColor: theme =>
+                      alpha(theme.palette.error.main, 0.14),
+                  },
+                }}
               >
                 <Delete fontSize='small' />
               </IconButton>
@@ -179,26 +185,38 @@ export const AdminProducts = () => {
       isLoading,
     },
     enableColumnActions: false,
-    enableColumnResizing: true,
+    enableColumnResizing: false,
     enablePagination: true,
     enableSorting: true,
     enableTopToolbar: false,
-    columnResizeMode: 'onChange',
-    layoutMode: 'grid',
     muiTablePaperProps: {
       elevation: 0,
       sx: {
-        borderRadius: 0,
-        border: '1px solid',
-        borderColor: 'divider',
+        border: 0,
+        borderRadius: 3,
         overflow: 'hidden',
+        boxShadow: '0 20px 50px rgba(15, 23, 42, 0.08)',
       },
     },
     muiTableContainerProps: {
       sx: {
+        backgroundColor: 'transparent',
         '& .mrt-table-body-row:hover > td': {
           backgroundColor: theme => alpha(theme.palette.primary.main, 0.04),
         },
+      },
+    },
+    muiTableBodyRowProps: {
+      sx: {
+        '& td': {
+          borderBottom: 0,
+        },
+      },
+    },
+    muiTableBodyCellProps: {
+      sx: {
+        py: 1.8,
+        color: 'text.primary',
       },
     },
     muiTableHeadCellProps: {
@@ -208,6 +226,16 @@ export const AdminProducts = () => {
         letterSpacing: '0.12em',
         textTransform: 'uppercase',
         color: 'text.secondary',
+        borderBottom: 0,
+        backgroundColor: theme => alpha(theme.palette.primary.main, 0.04),
+        py: 2,
+      },
+    },
+    muiBottomToolbarProps: {
+      sx: {
+        border: 0,
+        boxShadow: 'none',
+        backgroundColor: theme => alpha(theme.palette.primary.main, 0.035),
       },
     },
   });
@@ -222,66 +250,15 @@ export const AdminProducts = () => {
         })) ?? []
     );
   }, [categoryData]);
-  const { control, handleSubmit, reset } = useForm<CreateProductFormValues>({
-    defaultValues: createProductDefaultValues,
-    resolver: yupResolver(createProductSchema),
-    mode: 'onChange',
-  });
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: 'variants',
-  });
-
-  const closeCreateModal = () => {
-    setCreateOpen(false);
-    reset(createProductDefaultValues);
-  };
-
-  const handleCreateProduct = (values: CreateProductFormValues) => {
-    const payload = toCreateProductPayload(values);
-    createProductMutation.mutate(payload, {
-      onSuccess: () => {
-        showAlert({
-          message: 'Product created successfully.',
-          severity: 'success',
-        });
-        closeCreateModal();
-      },
-      onError: () => {
-        showAlert({
-          message: 'Failed to create product.',
-          severity: 'error',
-        });
-      },
-    });
-  };
-
-  const renderCreateProductField = (
-    field: ReturnType<typeof getCreateProductFields>[number]
-  ) => (
-    <Grid key={field.name} size={field.grid}>
-      {field.type === 'select' ? (
-        <RhfSelect<CreateProductFormValues>
-          control={control}
-          name={field.name}
-          label={field.label}
-          options={field.options ?? []}
-        />
-      ) : (
-        <RhfTextField<CreateProductFormValues>
-          control={control}
-          name={field.name}
-          label={field.label}
-          type={field.inputType ?? 'text'}
-          placeholder={field.placeholder}
-          fullWidth
-        />
-      )}
-    </Grid>
-  );
 
   return (
-    <Box sx={{ px: { xs: 2, sm: 3, md: 6 }, py: { xs: 4, md: 6 } }}>
+    <Box
+      sx={{
+        minHeight: '100%',
+        px: { xs: 2, sm: 3, md: 6 },
+        py: { xs: 4, md: 6 },
+      }}
+    >
       <Stack spacing={3}>
         <Stack
           direction={{ xs: 'column', sm: 'row' }}
@@ -289,11 +266,33 @@ export const AdminProducts = () => {
           justifyContent='space-between'
           alignItems={{ xs: 'stretch', sm: 'center' }}
         >
-          <Stack spacing={1}>
-            <Typography variant='overline' color='text.secondary'>
-              Admin
-            </Typography>
-            <Typography variant='h5'>Manage Products</Typography>
+          <Stack direction='row' spacing={2} alignItems='center'>
+            <Avatar
+              sx={{
+                width: 48,
+                height: 48,
+                backgroundColor: theme =>
+                  alpha(theme.palette.primary.main, 0.12),
+                color: 'primary.main',
+              }}
+            >
+              <Inventory2 />
+            </Avatar>
+            <Stack spacing={0.5}>
+              <Typography
+                variant='overline'
+                color='text.secondary'
+                sx={{ letterSpacing: '0.16em', fontWeight: 700 }}
+              >
+                Admin
+              </Typography>
+              <Typography variant='h5' sx={{ fontWeight: 700 }}>
+                Manage Products
+              </Typography>
+              <Typography variant='body2' color='text.secondary'>
+                {products.length} products loaded
+              </Typography>
+            </Stack>
           </Stack>
 
           {isAdmin && (
@@ -301,6 +300,11 @@ export const AdminProducts = () => {
               variant='contained'
               startIcon={<Add />}
               onClick={() => setCreateOpen(true)}
+              sx={{
+                px: 2.5,
+                py: 1.1,
+                boxShadow: '0 14px 30px rgba(25, 118, 210, 0.24)',
+              }}
             >
               Create Product
             </Button>
@@ -314,103 +318,22 @@ export const AdminProducts = () => {
         ) : isError ? (
           <Alert severity='error'>Failed to load products.</Alert>
         ) : (
-          <Paper sx={{ overflow: 'hidden' }}>
+          <Box
+            sx={{
+              overflow: 'hidden',
+            }}
+          >
             <MaterialReactTable table={table} />
-          </Paper>
+          </Box>
         )}
       </Stack>
 
-      <Dialog
-        open={createOpen}
-        onClose={() => {
-          if (!createProductMutation.isPending) {
-            closeCreateModal();
-          }
-        }}
-        fullWidth
-        maxWidth='md'
-      >
-        <DialogTitle>Create Product</DialogTitle>
-        <DialogContent>
-          <Stack
-            id='create-product-form'
-            component='form'
-            spacing={3}
-            sx={{ pt: 1 }}
-            onSubmit={handleSubmit(handleCreateProduct)}
-          >
-            <Grid container spacing={2}>
-              {getCreateProductFields(categoryOptions).map(
-                renderCreateProductField
-              )}
-            </Grid>
-
-            <Divider />
-
-            <Stack spacing={2}>
-              <Stack
-                direction='row'
-                spacing={2}
-                justifyContent='space-between'
-                alignItems='center'
-              >
-                <Typography variant='subtitle1'>Variants</Typography>
-                <Button
-                  type='button'
-                  variant='outlined'
-                  size='small'
-                  startIcon={<Add />}
-                  onClick={() => append(createEmptyVariant())}
-                >
-                  Add Variant
-                </Button>
-              </Stack>
-
-              {fields.map((variant, index) => (
-                <Stack key={variant.id} spacing={1}>
-                  <Stack
-                    direction='row'
-                    justifyContent='space-between'
-                    alignItems='center'
-                  >
-                    <Typography variant='body2' color='text.secondary'>
-                      Variant {index + 1}
-                    </Typography>
-                    <IconButton
-                      size='small'
-                      disabled={fields.length === 1}
-                      onClick={() => remove(index)}
-                    >
-                      <DeleteOutline fontSize='small' />
-                    </IconButton>
-                  </Stack>
-                  <Grid container spacing={2}>
-                    {getCreateProductVariantFields(index).map(
-                      renderCreateProductField
-                    )}
-                  </Grid>
-                </Stack>
-              ))}
-            </Stack>
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={closeCreateModal}
-            disabled={createProductMutation.isPending}
-          >
-            Cancel
-          </Button>
-          <Button
-            type='submit'
-            form='create-product-form'
-            variant='contained'
-            disabled={createProductMutation.isPending}
-          >
-            {createProductMutation.isPending ? 'Creating...' : 'Create Product'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {createOpen && (
+        <CreateProductDialog
+          categoryOptions={categoryOptions}
+          onClose={() => setCreateOpen(false)}
+        />
+      )}
     </Box>
   );
 };

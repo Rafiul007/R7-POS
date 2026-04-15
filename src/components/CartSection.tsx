@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Divider, Avatar, Badge } from '@mui/material';
+import { Box, Typography, Avatar, Badge } from '@mui/material';
 import { ShoppingCart } from '@mui/icons-material';
 import { useAppSelector } from '../store/hooks';
 import { selectCartTotalItems, selectCartTotalPrice } from '../store/selectors';
@@ -14,7 +14,6 @@ export const CartSection: React.FC<CartSectionProps> = ({ onClick }) => {
 
   return (
     <>
-      <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.3)', mt: 'auto' }} />
       <Box
         onClick={onClick}
         sx={{
@@ -22,15 +21,17 @@ export const CartSection: React.FC<CartSectionProps> = ({ onClick }) => {
           display: 'flex',
           alignItems: 'center',
           gap: 2,
-          backgroundColor: 'rgba(255, 255, 255, 0.1)',
-          borderRadius: 1,
+          mt: 'auto',
+          backgroundColor: 'rgba(255, 255, 255, 0.14)',
+          borderRadius: 2,
           mx: 1,
           mb: 1,
+          boxShadow: '0 12px 28px rgba(15, 23, 42, 0.12)',
           cursor: onClick ? 'pointer' : 'default',
           transition: 'all 0.2s ease-in-out',
           '&:hover': onClick
             ? {
-                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                backgroundColor: 'rgba(255, 255, 255, 0.22)',
                 transform: 'translateY(-2px)',
               }
             : {},

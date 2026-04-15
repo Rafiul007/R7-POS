@@ -74,13 +74,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       {/* ───────────── TOP APP BAR ───────────── */}
       <AppBar
         position='fixed'
+        elevation={0}
         sx={{
           height: APP_BAR_HEIGHT,
-          background: `linear-gradient(
-            135deg,
-            ${theme.palette.primary.dark},
-            ${theme.palette.primary.main}
-          )`,
+          background: 'rgba(255, 255, 255, 0.92)',
+          borderRadius: 0,
+          color: 'text.primary',
+          backdropFilter: 'blur(14px)',
+          boxShadow: '0 10px 30px rgba(15, 23, 42, 0.06)',
         }}
       >
         <Toolbar sx={{ minHeight: APP_BAR_HEIGHT }}>
@@ -130,7 +131,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       </AppBar>
 
       {/* ───────────── SIDEBAR ───────────── */}
-      <Box component='nav' sx={{ width: { md: DRAWER_WIDTH }, flexShrink: 0 }}>
+      <Box
+        component='nav'
+        sx={{ width: { md: DRAWER_WIDTH }, flexShrink: 0, borderRadius: 0 }}
+      >
         {/* Mobile Drawer */}
         <Drawer
           variant='temporary'
@@ -141,8 +145,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             display: { xs: 'block', md: 'none' },
             '& .MuiDrawer-paper': {
               width: DRAWER_WIDTH,
-              background: `linear-gradient(180deg, #1976d2, #2196f3)`,
+              background: `linear-gradient(180deg, ${theme.palette.primary.dark}, ${theme.palette.info.main})`,
               color: '#fff',
+              border: 0,
+              boxShadow: '18px 0 40px rgba(15, 23, 42, 0.12)',
             },
           }}
         >
@@ -159,9 +165,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               width: DRAWER_WIDTH,
               top: APP_BAR_HEIGHT,
               height: `calc(100% - ${APP_BAR_HEIGHT}px)`,
-              background: `linear-gradient(180deg, #1976d2, #2196f3)`,
+              background: `linear-gradient(180deg, ${theme.palette.primary.dark}, ${theme.palette.info.main})`,
               color: '#fff',
-              borderRight: 'none',
+              border: 0,
+              boxShadow: '18px 0 40px rgba(15, 23, 42, 0.10)',
             },
           }}
         >
@@ -177,7 +184,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           mt: `${APP_BAR_HEIGHT}px`,
           height: `calc(100vh - ${APP_BAR_HEIGHT}px)`,
           overflow: 'auto',
-          backgroundColor: theme.palette.background.default,
+          background: `linear-gradient(180deg, ${theme.palette.background.default} 0%, #ffffff 100%)`,
         }}
       >
         {children}
