@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
+  Alert,
   Typography,
   Box,
+  CircularProgress,
   Grid,
   Stack,
   TextField,
@@ -17,33 +19,21 @@ import { Search, QrCodeScanner } from '@mui/icons-material';
 import { ProductGridItem } from '../components';
 import { useAppDispatch } from '../store/hooks';
 import { addItem } from '../store/cartSlice';
-import { getAllProducts } from '../data/productStore';
-import { useAlert, useBarcodeScanner } from '../hooks';
+import { useAlert, useBarcodeScanner, useProducts } from '../hooks';
 import { MESSAGES } from '../constants';
 import { isShiftOpen } from '../utils/drawer';
-import { getBranchInventoryMap } from '../data/branchInventoryStore';
-import { getShiftStatus } from '../utils/drawer';
-import { getCurrentBranchId } from '../data/branchInventoryStore';
 
 export const Products = () => {
   const dispatch = useAppDispatch();
   const { showAlert } = useAlert();
-  const [shiftInfo, setShiftInfo] = useState(() => getShiftStatus());
-  const [version, setVersion] = useState(0);
-  const products = useMemo(() => {
-    void version;
-    const effectiveBranchId = shiftInfo.branchId || getCurrentBranchId() || '';
-    const stockMap = getBranchInventoryMap(effectiveBranchId);
-    return getAllProducts().map(product => ({
-      ...product,
-      stock: stockMap.get(product.id) ?? product.stock ?? 0,
-    }));
-  }, [shiftInfo, version]);
+  const [search, setSearch] = useState('');
   const [scanValue, setScanValue] = useState('');
   const [scanStatus, setScanStatus] = useState<'idle' | 'ok' | 'error'>('idle');
   const [scanMessage, setScanMessage] = useState('Ready to scan');
   const [autoCapture, setAutoCapture] = useState(true);
   const barcodeInputRef = useRef<HTMLInputElement | null>(null);
+  const { data, isError, isLoading } = useProducts({ search });
+  const products = data?.products ?? [];
 
   const handleBarcode = useCallback(
     (barcode: string) => {
@@ -57,7 +47,9 @@ export const Products = () => {
         });
         return;
       }
-      const product = products.find(item => item.barcode === barcode);
+      const product = products.find(
+        item => item.barcode === barcode || item.sku === barcode
+      );
       if (!product) {
         setScanStatus('error');
         setScanMessage(MESSAGES.BARCODE.NOT_FOUND(barcode));
@@ -95,24 +87,6 @@ export const Products = () => {
     captureWhenFocused: false,
   });
 
-  useEffect(() => {
-    const handleInventoryUpdate = () => {
-      setVersion(prev => prev + 1);
-    };
-    window.addEventListener('inventory-updated', handleInventoryUpdate);
-    return () =>
-      window.removeEventListener('inventory-updated', handleInventoryUpdate);
-  }, []);
-
-  useEffect(() => {
-    const handleShiftUpdate = () => {
-      setShiftInfo(getShiftStatus());
-    };
-    window.addEventListener('drawer-shift-updated', handleShiftUpdate);
-    return () =>
-      window.removeEventListener('drawer-shift-updated', handleShiftUpdate);
-  }, []);
-
   return (
     <Box
       sx={{
@@ -147,7 +121,9 @@ export const Products = () => {
             variant='body2'
             sx={{ color: 'text.secondary', textAlign: 'left' }}
           >
-            {products.length} items available
+            {isLoading
+              ? 'Loading products...'
+              : `${data?.pagination.total ?? products.length} items available`}
           </Typography>
         </Stack>
 
@@ -209,6 +185,8 @@ export const Products = () => {
               variant='outlined'
               fullWidth
               size='small'
+              value={search}
+              onChange={e => setSearch(e.target.value)}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position='start'>
@@ -278,11 +256,21 @@ export const Products = () => {
           </Box>
         </Box>
 
-        <Grid container spacing={1} justifyContent='flex-start'>
-          {products.map(product => (
-            <ProductGridItem key={product.id} product={product} />
-          ))}
-        </Grid>
+        {isLoading ? (
+          <Stack alignItems='center' sx={{ py: 6 }}>
+            <CircularProgress />
+          </Stack>
+        ) : isError ? (
+          <Alert severity='error'>Failed to load products.</Alert>
+        ) : products.length === 0 ? (
+          <Alert severity='info'>No products found.</Alert>
+        ) : (
+          <Grid container spacing={1} justifyContent='flex-start'>
+            {products.map(product => (
+              <ProductGridItem key={product.id} product={product} />
+            ))}
+          </Grid>
+        )}
       </Box>
     </Box>
   );

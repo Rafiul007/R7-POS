@@ -1,5 +1,4 @@
 import type { IProduct } from '../types';
-import { sampleProducts } from './products';
 
 const STORAGE_KEY = 'pos.products.v1';
 
@@ -39,18 +38,7 @@ export const upsertProducts = (incoming: IProduct[]) => {
 };
 
 export const getAllProducts = () => {
-  const stored = loadStoredProducts();
-  const map = new Map<string, IProduct>();
-
-  for (const product of sampleProducts) {
-    map.set(getKey(product), product);
-  }
-
-  for (const product of stored) {
-    map.set(getKey(product), product);
-  }
-
-  return Array.from(map.values());
+  return loadStoredProducts();
 };
 
 export const findProductByBarcode = (barcode: string) => {
