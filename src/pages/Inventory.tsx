@@ -6,14 +6,14 @@ import {
   Tooltip,
   Stack,
   Paper,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { Add } from '@mui/icons-material';
+import {
+  MaterialReactTable,
+  useMaterialReactTable,
+  type MRT_ColumnDef,
+} from 'material-react-table';
 import {
   InventoryStats,
   InventoryFilters,
@@ -39,8 +39,16 @@ import { getBranchById } from '../data/branches';
 import { useAlert } from '../hooks';
 import { getShiftStatus } from '../utils/drawer';
 import { getCurrentBranchId } from '../data/branchInventoryStore';
+import { buildMrtOptions } from '../utils/materialReactTable';
 
 /* ───────────── Inventory Page ───────────── */
+
+type InventoryAdjustmentRow = {
+  id: string;
+  product: string;
+  change: string;
+  reason: string;
+};
 
 export const Inventory = () => {
   const { showAlert } = useAlert();
@@ -207,21 +215,44 @@ export const Inventory = () => {
       .slice(0, 8);
   }, [branchId, version]);
 
-  const getProductLabel = (productId: string) =>
-    data.find(product => product.id === productId)?.name || productId;
+  const productLabels = useMemo(
+    () => new Map(data.map(product => [product.id, product.name] as const)),
+    [data]
+  );
+
+  const adjustmentRows = useMemo<InventoryAdjustmentRow[]>(
+    () =>
+      movements.map(movement => ({
+        id: movement.id,
+        product: productLabels.get(movement.productId) ?? movement.productId,
+        change: `${movement.quantity > 0 ? '+' : ''}${movement.quantity}`,
+        reason: movement.reason || movement.type,
+      })),
+    [movements, productLabels]
+  );
+
+  const adjustmentColumns = useMemo<MRT_ColumnDef<InventoryAdjustmentRow>[]>(
+    () => [
+      { accessorKey: 'product', header: 'Product', size: 240 },
+      { accessorKey: 'change', header: 'Change', size: 100 },
+      { accessorKey: 'reason', header: 'Reason', size: 260 },
+    ],
+    []
+  );
+
+  const adjustmentsTable = useMaterialReactTable(
+    buildMrtOptions({
+      columns: adjustmentColumns,
+      data: adjustmentRows,
+      enablePagination: adjustmentRows.length > 8,
+    })
+  );
 
   return (
     <Box
       sx={{
         minHeight: '100%',
-        background: theme =>
-          `linear-gradient(180deg, ${alpha(
-            theme.palette.primary.main,
-            0.08
-          )} 0%, ${alpha(theme.palette.info.main, 0)} 45%)`,
-        '& .MuiTypography-root': {
-          fontFamily: '"Space Grotesk", "Helvetica", "Arial", sans-serif',
-        },
+        backgroundColor: 'background.default',
       }}
     >
       <Box
@@ -304,41 +335,14 @@ export const Inventory = () => {
           elevation={0}
           sx={{
             p: 2,
-            borderRadius: 0,
             border: '1px solid',
-            borderColor: 'divider',
+            borderColor: theme => alpha(theme.palette.primary.main, 0.08),
           }}
         >
           <Typography variant='subtitle2' fontWeight={700} sx={{ mb: 2 }}>
             Recent Stock Adjustments
           </Typography>
-          <Table size='small'>
-            <TableHead>
-              <TableRow>
-                <TableCell>Product</TableCell>
-                <TableCell>Change</TableCell>
-                <TableCell>Reason</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {movements.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={3}>No adjustments yet.</TableCell>
-                </TableRow>
-              ) : (
-                movements.map(movement => (
-                  <TableRow key={movement.id}>
-                    <TableCell>{getProductLabel(movement.productId)}</TableCell>
-                    <TableCell>
-                      {movement.quantity > 0 ? '+' : ''}
-                      {movement.quantity}
-                    </TableCell>
-                    <TableCell>{movement.reason || movement.type}</TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+          <MaterialReactTable table={adjustmentsTable} />
         </Paper>
 
         {/* Add Stock Modal */}

@@ -1,11 +1,5 @@
-import { Box, Paper, Typography, Stack } from '@mui/material';
-import {
-  ShoppingCart,
-  AttachMoney,
-  PeopleAlt,
-  Inventory2,
-} from '@mui/icons-material';
-import { alpha, useTheme } from '@mui/material/styles';
+import { Box, Paper, Stack, Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 
 interface HomeStatsProps {
   totalSales: number;
@@ -14,70 +8,89 @@ interface HomeStatsProps {
   itemsInStock: number;
 }
 
-const StatCard = ({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: React.ElementType;
+type StatCardConfig = {
   label: string;
   value: string;
-}) => {
+  helper: string;
+  delta: string;
+  positive?: boolean;
+};
+
+const SummaryCard = ({
+  label,
+  value,
+  helper,
+  delta,
+  positive = true,
+}: StatCardConfig) => {
   const theme = useTheme();
 
   return (
     <Paper
       sx={{
-        p: 2.5,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 2,
-        borderRadius: 0,
-        border: '1px solid',
-        borderColor: 'divider',
-        backgroundColor: 'transparent',
-        transition: 'transform 0.25s ease, border-color 0.25s ease',
-        '& .MuiTypography-root': {
-          fontFamily: '"Space Grotesk", "Helvetica", "Arial", sans-serif',
-        },
-        '&:hover': {
-          transform: 'translateY(-3px)',
-          borderColor: 'text.primary',
-        },
+        p: 2.25,
+        borderRadius: 3,
+        position: 'relative',
       }}
     >
-      <Box
-        sx={{
-          p: 1.25,
-          backgroundColor: alpha(theme.palette.primary.main, 0.08),
-          border: '1px solid',
-          borderColor: 'divider',
-          borderRadius: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Icon sx={{ color: theme.palette.primary.main, fontSize: '1.3rem' }} />
-      </Box>
-      <Stack spacing={0.25} sx={{ flex: 1 }}>
-        <Typography
-          variant='overline'
-          sx={{
-            letterSpacing: '0.18em',
-            color: 'text.secondary',
-            fontWeight: 600,
-          }}
-        >
+      <Stack spacing={1.5}>
+        <Typography variant='body2' color='text.secondary'>
           {label}
         </Typography>
         <Typography
           variant='h5'
-          fontWeight={600}
-          sx={{ color: 'text.primary' }}
+          sx={{ fontWeight: 800, letterSpacing: '-0.03em' }}
         >
           {value}
         </Typography>
+        <Stack direction='row' spacing={1} alignItems='center'>
+          <Box
+            sx={{
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              bgcolor: positive
+                ? theme.palette.success.main
+                : theme.palette.warning.main,
+            }}
+          />
+          <Typography
+            variant='caption'
+            sx={{
+              color: positive
+                ? theme.palette.success.dark
+                : theme.palette.warning.dark,
+              fontWeight: 700,
+            }}
+          >
+            {delta}
+          </Typography>
+          <Typography variant='caption' color='text.secondary'>
+            {helper}
+          </Typography>
+        </Stack>
+        <Box
+          sx={{
+            position: 'absolute',
+            inset: 'auto 18px 18px auto',
+            width: 56,
+            height: 28,
+            opacity: 0.9,
+          }}
+        >
+          <svg viewBox='0 0 56 28' width='56' height='28' fill='none'>
+            <path
+              d='M2 22C7 22 9 9 15 9C21 9 20 25 28 25C36 25 33 7 42 7C48 7 50 17 54 3'
+              stroke={
+                positive
+                  ? theme.palette.primary.main
+                  : theme.palette.warning.main
+              }
+              strokeWidth='2.5'
+              strokeLinecap='round'
+            />
+          </svg>
+        </Box>
       </Stack>
     </Paper>
   );
@@ -96,6 +109,34 @@ export const HomeStats = ({
       maximumFractionDigits: 0,
     }).format(value);
 
+  const stats: StatCardConfig[] = [
+    {
+      label: 'Donations',
+      value: formatCurrency(revenue),
+      helper: 'Last week',
+      delta: '8.2%',
+    },
+    {
+      label: 'Active campaigns',
+      value: `${Math.max(totalSales - 268, 18)}`,
+      helper: 'Retail + online',
+      delta: '3 live',
+    },
+    {
+      label: 'Upcoming events',
+      value: `${Math.max(customers - 139, 3)}`,
+      helper: 'This week',
+      delta: '2 pending',
+      positive: false,
+    },
+    {
+      label: 'Active members',
+      value: new Intl.NumberFormat('en-US').format(itemsInStock * 4 + 219),
+      helper: 'New this week',
+      delta: '52',
+    },
+  ];
+
   return (
     <Box
       sx={{
@@ -103,27 +144,14 @@ export const HomeStats = ({
         gridTemplateColumns: {
           xs: '1fr',
           sm: 'repeat(2, 1fr)',
-          md: 'repeat(4, 1fr)',
+          xl: 'repeat(4, 1fr)',
         },
         gap: 2,
       }}
     >
-      <StatCard
-        icon={ShoppingCart}
-        label='Total Sales'
-        value={`${totalSales}`}
-      />
-      <StatCard
-        icon={AttachMoney}
-        label='Revenue'
-        value={formatCurrency(revenue)}
-      />
-      <StatCard icon={PeopleAlt} label='Customers' value={`${customers}`} />
-      <StatCard
-        icon={Inventory2}
-        label='Items In Stock'
-        value={`${itemsInStock}`}
-      />
+      {stats.map(stat => (
+        <SummaryCard key={stat.label} {...stat} />
+      ))}
     </Box>
   );
 };

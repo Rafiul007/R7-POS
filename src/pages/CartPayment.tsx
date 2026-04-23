@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   Box,
   Typography,
@@ -56,6 +56,8 @@ interface PaymentMethod {
   reference?: string;
 }
 
+const roundToCents = (value: number) => Math.round(value * 100) / 100;
+
 export const CartPayment = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -70,15 +72,6 @@ export const CartPayment = () => {
     type: 'walk-in', // walk-in or registered
   });
 
-  const [payments, setPayments] = useState<PaymentMethod[]>([
-    {
-      id: '1',
-      method: 'cash',
-      amount: 0,
-      saved: false,
-    },
-  ]);
-
   const [couponCode, setCouponCode] = useState('');
   const [discount, setDiscount] = useState(0);
   const [orderNotes, setOrderNotes] = useState('');
@@ -88,14 +81,23 @@ export const CartPayment = () => {
     sms: false,
   });
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
-  const [transactionRef, setTransactionRef] = useState(`TXN-${Date.now()}`);
+  const [transactionRef, setTransactionRef] = useState(
+    () => `TXN-${Date.now()}`
+  );
 
   const subtotal = totalPrice;
   const vat = subtotal * 0.1; // 10% VAT
   const discountAmount = (subtotal + vat) * (discount / 100);
   const finalTotal = subtotal + vat - discountAmount;
 
-  const roundToCents = (value: number) => Math.round(value * 100) / 100;
+  const [payments, setPayments] = useState<PaymentMethod[]>(() => [
+    {
+      id: '1',
+      method: 'cash',
+      amount: Math.max(0, roundToCents(finalTotal)),
+      saved: false,
+    },
+  ]);
 
   const totalPaid = payments.reduce(
     (sum, payment) => sum + (payment.saved ? payment.amount : 0),
@@ -115,25 +117,36 @@ export const CartPayment = () => {
     return Math.max(0, roundToCents(finalTotal - otherTotal));
   };
 
-  // Fixed: Update single payment amount when finalTotal changes
-  useEffect(() => {
-    if (payments.length === 1 && !payments[0].saved) {
-      const desiredAmount = Math.max(0, roundToCents(finalTotal));
-      setPayments([{ ...payments[0], amount: desiredAmount }]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [finalTotal]);
+  const updateSingleUnsavedPaymentAmount = (nextFinalTotal: number) => {
+    setPayments(prevPayments => {
+      if (prevPayments.length !== 1 || prevPayments[0].saved) {
+        return prevPayments;
+      }
+
+      const desiredAmount = Math.max(0, roundToCents(nextFinalTotal));
+      if (prevPayments[0].amount === desiredAmount) {
+        return prevPayments;
+      }
+
+      return [{ ...prevPayments[0], amount: desiredAmount }];
+    });
+  };
 
   const handleApplyCoupon = () => {
     // Simple coupon logic - in real app, this would validate against backend
+    let nextDiscount = 0;
     if (couponCode.toLowerCase() === 'save10') {
-      setDiscount(10);
+      nextDiscount = 10;
     } else if (couponCode.toLowerCase() === 'save20') {
-      setDiscount(20);
+      nextDiscount = 20;
     } else {
-      setDiscount(0);
       showAlert({ message: MESSAGES.CART.COUPON_INVALID, severity: 'warning' });
     }
+
+    setDiscount(nextDiscount);
+    updateSingleUnsavedPaymentAmount(
+      subtotal + vat - (subtotal + vat) * (nextDiscount / 100)
+    );
   };
 
   const addPaymentMethod = () => {
@@ -391,7 +404,6 @@ export const CartPayment = () => {
               color='success'
               size='small'
               sx={{
-                borderRadius: 0,
                 backgroundColor: 'success.main',
                 color: 'white',
               }}
@@ -464,12 +476,6 @@ export const CartPayment = () => {
                       label='Transaction Reference'
                       value={transactionRef}
                       onChange={e => setTransactionRef(e.target.value)}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 0,
-                          '& fieldset': { borderRadius: 0 },
-                        },
-                      }}
                     />
                   </Grid>
                   {customerInfo.type === 'walk-in' && (
@@ -485,12 +491,6 @@ export const CartPayment = () => {
                           })
                         }
                         required
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 0,
-                            '& fieldset': { borderRadius: 0 },
-                          },
-                        }}
                       />
                     </Grid>
                   )}
@@ -506,12 +506,6 @@ export const CartPayment = () => {
                         })
                       }
                       required
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 0,
-                          '& fieldset': { borderRadius: 0 },
-                        },
-                      }}
                     />
                   </Grid>
                   {customerInfo.type === 'walk-in' && (
@@ -527,12 +521,6 @@ export const CartPayment = () => {
                             email: e.target.value,
                           })
                         }
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 0,
-                            '& fieldset': { borderRadius: 0 },
-                          },
-                        }}
                       />
                     </Grid>
                   )}
@@ -575,7 +563,6 @@ export const CartPayment = () => {
                   sx={{
                     backgroundColor: 'primary.contrastText',
                     color: 'primary.main',
-                    borderRadius: 0,
                     '&:hover': {
                       backgroundColor: 'primary.contrastText',
                       opacity: 0.9,
@@ -618,7 +605,6 @@ export const CartPayment = () => {
                           onClick={() =>
                             togglePaymentSaved(payment.id, !payment.saved)
                           }
-                          sx={{ borderRadius: 0 }}
                         >
                           {payment.saved ? 'Edit' : 'Save'}
                         </Button>
@@ -648,12 +634,6 @@ export const CartPayment = () => {
                               })
                             }
                             disabled={Boolean(payment.saved)}
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                borderRadius: 0,
-                                '& fieldset': { borderRadius: 0 },
-                              },
-                            }}
                           >
                             <MenuItem value='cash'>Cash</MenuItem>
                             <MenuItem value='card'>Credit/Debit Card</MenuItem>
@@ -674,12 +654,6 @@ export const CartPayment = () => {
                           }
                           disabled={Boolean(payment.saved)}
                           inputProps={{ min: 0, step: 0.01 }}
-                          sx={{
-                            '& .MuiOutlinedInput-root': {
-                              borderRadius: 0,
-                              '& fieldset': { borderRadius: 0 },
-                            },
-                          }}
                         />
                       </Grid>
                       <Grid size={{ xs: 12, sm: 4 }}>
@@ -693,12 +667,6 @@ export const CartPayment = () => {
                             })
                           }
                           disabled={Boolean(payment.saved)}
-                          sx={{
-                            '& .MuiOutlinedInput-root': {
-                              borderRadius: 0,
-                              '& fieldset': { borderRadius: 0 },
-                            },
-                          }}
                         />
                       </Grid>
 
@@ -716,12 +684,6 @@ export const CartPayment = () => {
                                 })
                               }
                               disabled={Boolean(payment.saved)}
-                              sx={{
-                                '& .MuiOutlinedInput-root': {
-                                  borderRadius: 0,
-                                  '& fieldset': { borderRadius: 0 },
-                                },
-                              }}
                             />
                           </Grid>
                           <Grid size={{ xs: 6 }}>
@@ -736,12 +698,6 @@ export const CartPayment = () => {
                                 })
                               }
                               disabled={Boolean(payment.saved)}
-                              sx={{
-                                '& .MuiOutlinedInput-root': {
-                                  borderRadius: 0,
-                                  '& fieldset': { borderRadius: 0 },
-                                },
-                              }}
                             />
                           </Grid>
                           <Grid size={{ xs: 6 }}>
@@ -756,12 +712,6 @@ export const CartPayment = () => {
                                 })
                               }
                               disabled={Boolean(payment.saved)}
-                              sx={{
-                                '& .MuiOutlinedInput-root': {
-                                  borderRadius: 0,
-                                  '& fieldset': { borderRadius: 0 },
-                                },
-                              }}
                             />
                           </Grid>
                         </>
@@ -852,13 +802,12 @@ export const CartPayment = () => {
                   boxShadow: 'none',
                   border: 'none',
                   '& .MuiAccordionSummary-root': {
-                    borderRadius: 0,
                     backgroundColor: 'primary.main',
                     color: 'primary.contrastText',
                     minHeight: 56,
                     '&:hover': { backgroundColor: 'primary.dark' },
                   },
-                  '& .MuiAccordionDetails-root': { borderRadius: 0, p: 3 },
+                  '& .MuiAccordionDetails-root': { p: 3 },
                 }}
               >
                 <AccordionSummary
@@ -887,12 +836,6 @@ export const CartPayment = () => {
                         placeholder='Any special instructions for this order...'
                         value={orderNotes}
                         onChange={e => setOrderNotes(e.target.value)}
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 0,
-                            '& fieldset': { borderRadius: 0 },
-                          },
-                        }}
                       />
                     </Grid>
 
@@ -995,19 +938,12 @@ export const CartPayment = () => {
                     placeholder='Enter coupon code'
                     value={couponCode}
                     onChange={e => setCouponCode(e.target.value)}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 0,
-                        '& fieldset': { borderRadius: 0 },
-                      },
-                    }}
                   />
                   <Button
                     variant='contained'
                     onClick={handleApplyCoupon}
                     sx={{
                       minWidth: 120,
-                      borderRadius: 0,
                       backgroundColor: 'warning.main',
                       color: 'warning.contrastText',
                       '&:hover': { backgroundColor: 'warning.dark' },
@@ -1023,7 +959,6 @@ export const CartPayment = () => {
                       color='success'
                       variant='outlined'
                       sx={{
-                        borderRadius: 0,
                         borderColor: 'success.main',
                         color: 'success.main',
                       }}
@@ -1082,7 +1017,6 @@ export const CartPayment = () => {
                           mr: 2,
                           border: '1px solid',
                           borderColor: 'divider',
-                          borderRadius: 0,
                         }}
                       >
                         {item.product.name.charAt(0)}
@@ -1259,7 +1193,6 @@ export const CartPayment = () => {
                     py: 2,
                     fontSize: '1.1rem',
                     fontWeight: 'bold',
-                    borderRadius: 0,
                     backgroundColor: isPaymentComplete
                       ? 'success.main'
                       : 'grey.400',

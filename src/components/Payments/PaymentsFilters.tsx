@@ -6,6 +6,7 @@ import {
   Stack,
   Button,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { Search, Tune, Refresh } from '@mui/icons-material';
 
 export interface PaymentsFiltersState {
@@ -37,6 +38,8 @@ export const PaymentsFilters = ({
         flexDirection: { xs: 'column', md: 'row' },
         gap: 2,
         alignItems: { xs: 'stretch', md: 'flex-end' },
+        border: '1px solid',
+        borderColor: theme => alpha(theme.palette.primary.dark, 0.08),
       }}
     >
       <TextField
@@ -50,9 +53,6 @@ export const PaymentsFilters = ({
         sx={{
           flex: 1,
           minWidth: { xs: '100%', md: '300px' },
-          '& .MuiOutlinedInput-root': {
-            borderRadius: 0,
-          },
         }}
       />
 
@@ -63,7 +63,6 @@ export const PaymentsFilters = ({
         displayEmpty
         sx={{
           minWidth: { xs: '100%', md: '200px' },
-          borderRadius: 0,
         }}
       >
         <MenuItem value=''>All Methods</MenuItem>
@@ -80,7 +79,6 @@ export const PaymentsFilters = ({
         displayEmpty
         sx={{
           minWidth: { xs: '100%', md: '200px' },
-          borderRadius: 0,
         }}
       >
         <MenuItem value=''>All Status</MenuItem>
@@ -96,10 +94,7 @@ export const PaymentsFilters = ({
           size='small'
           startIcon={<Refresh />}
           onClick={onReset}
-          sx={{
-            textTransform: 'none',
-            borderRadius: 0,
-          }}
+          sx={{ textTransform: 'none' }}
         >
           Reset
         </Button>
@@ -107,10 +102,7 @@ export const PaymentsFilters = ({
           variant='contained'
           size='small'
           startIcon={<Tune />}
-          sx={{
-            textTransform: 'none',
-            borderRadius: 0,
-          }}
+          sx={{ textTransform: 'none' }}
         >
           Apply
         </Button>

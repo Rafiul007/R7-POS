@@ -6,20 +6,20 @@ import {
   Button,
   Card,
   CardContent,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
   Chip,
 } from '@mui/material';
-import { alpha } from '@mui/material/styles';
 import { UploadFile } from '@mui/icons-material';
+import {
+  MaterialReactTable,
+  useMaterialReactTable,
+  type MRT_ColumnDef,
+} from 'material-react-table';
 import { useNavigate } from 'react-router-dom';
 import { useAlert } from '../hooks';
 import { MESSAGES } from '../constants';
 import { getAllProducts, upsertProducts } from '../data/productStore';
 import type { IProduct } from '../types';
+import { buildMrtOptions } from '../utils/materialReactTable';
 
 interface ParsedRow {
   index: number;
@@ -269,15 +269,66 @@ export const BulkUpload = () => {
     URL.revokeObjectURL(url);
   };
 
+  const previewColumns = useMemo<MRT_ColumnDef<ParsedRow>[]>(
+    () => [
+      { accessorKey: 'index', header: '#', size: 60 },
+      { accessorKey: 'data.name', header: 'Name', size: 220 },
+      {
+        accessorKey: 'data.sku',
+        header: 'SKU',
+        size: 120,
+        Cell: ({ cell }) => cell.getValue<string>() || '—',
+      },
+      {
+        accessorKey: 'data.barcode',
+        header: 'Barcode',
+        size: 150,
+        Cell: ({ cell }) => cell.getValue<string>() || '—',
+      },
+      {
+        id: 'price',
+        header: 'Price',
+        size: 100,
+        accessorFn: row =>
+          row.data.price !== undefined
+            ? Number(row.data.price).toFixed(2)
+            : '—',
+      },
+      {
+        id: 'stock',
+        header: 'Stock',
+        size: 90,
+        accessorFn: row =>
+          row.data.stock !== undefined ? String(row.data.stock) : '—',
+      },
+      {
+        id: 'status',
+        header: 'Status',
+        size: 160,
+        Cell: ({ row }) =>
+          row.original.errors.length === 0 ? (
+            <Chip label='Ready' color='success' size='small' />
+          ) : (
+            <Chip label={row.original.errors[0]} color='warning' size='small' />
+          ),
+      },
+    ],
+    []
+  );
+
+  const previewTable = useMaterialReactTable(
+    buildMrtOptions({
+      columns: previewColumns,
+      data: rows,
+      enablePagination: rows.length > 10,
+    })
+  );
+
   return (
     <Box
       sx={{
         minHeight: '100%',
-        background: theme =>
-          `linear-gradient(180deg, ${alpha(
-            theme.palette.primary.main,
-            0.1
-          )} 0%, ${alpha(theme.palette.info.main, 0)} 45%)`,
+        backgroundColor: 'background.default',
       }}
     >
       <Box
@@ -305,35 +356,23 @@ export const BulkUpload = () => {
           </Typography>
         </Stack>
 
-        <Card
-          sx={{ borderRadius: 0, border: '1px solid', borderColor: 'divider' }}
-        >
+        <Card sx={{ border: '1px solid', borderColor: 'divider' }}>
           <CardContent>
             <Stack
               direction={{ xs: 'column', md: 'row' }}
               spacing={2}
               alignItems={{ md: 'center' }}
             >
-              <Button
-                variant='outlined'
-                onClick={handleDownloadTemplate}
-                sx={{ borderRadius: 0 }}
-              >
+              <Button variant='outlined' onClick={handleDownloadTemplate}>
                 Download Template
               </Button>
-              <Button
-                variant='outlined'
-                color='inherit'
-                onClick={handleReset}
-                sx={{ borderRadius: 0 }}
-              >
+              <Button variant='outlined' color='inherit' onClick={handleReset}>
                 Reset
               </Button>
               <Button
                 variant='contained'
                 component='label'
                 startIcon={<UploadFile />}
-                sx={{ borderRadius: 0 }}
               >
                 Upload CSV
                 <input
@@ -353,7 +392,6 @@ export const BulkUpload = () => {
                 color='success'
                 disabled={rows.length === 0 || hasErrors}
                 onClick={handleImport}
-                sx={{ borderRadius: 0 }}
               >
                 Import {validRows.length} products
               </Button>
@@ -361,7 +399,6 @@ export const BulkUpload = () => {
                 variant='outlined'
                 disabled={rows.length === 0 || hasErrors || sending}
                 onClick={handleSendToBackend}
-                sx={{ borderRadius: 0 }}
               >
                 {sending ? 'Sending...' : `Send ${validRows.length} to Backend`}
               </Button>
@@ -369,9 +406,7 @@ export const BulkUpload = () => {
           </CardContent>
         </Card>
 
-        <Card
-          sx={{ borderRadius: 0, border: '1px solid', borderColor: 'divider' }}
-        >
+        <Card sx={{ border: '1px solid', borderColor: 'divider' }}>
           <CardContent>
             <Stack
               direction='row'
@@ -398,60 +433,9 @@ export const BulkUpload = () => {
                       : 'success'
                 }
                 variant='outlined'
-                sx={{ borderRadius: 0 }}
               />
             </Stack>
-
-            <Table size='small'>
-              <TableHead>
-                <TableRow>
-                  <TableCell>#</TableCell>
-                  <TableCell>Name</TableCell>
-                  <TableCell>SKU</TableCell>
-                  <TableCell>Barcode</TableCell>
-                  <TableCell>Price</TableCell>
-                  <TableCell>Stock</TableCell>
-                  <TableCell>Status</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7}>
-                      Upload a CSV to preview rows.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  rows.map(row => (
-                    <TableRow key={row.index}>
-                      <TableCell>{row.index}</TableCell>
-                      <TableCell>{row.data.name}</TableCell>
-                      <TableCell>{row.data.sku || '—'}</TableCell>
-                      <TableCell>{row.data.barcode || '—'}</TableCell>
-                      <TableCell>
-                        {row.data.price !== undefined
-                          ? Number(row.data.price).toFixed(2)
-                          : '—'}
-                      </TableCell>
-                      <TableCell>
-                        {row.data.stock !== undefined ? row.data.stock : '—'}
-                      </TableCell>
-                      <TableCell>
-                        {row.errors.length === 0 ? (
-                          <Chip label='Ready' color='success' size='small' />
-                        ) : (
-                          <Chip
-                            label={row.errors[0]}
-                            color='warning'
-                            size='small'
-                          />
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+            <MaterialReactTable table={previewTable} />
           </CardContent>
         </Card>
       </Box>

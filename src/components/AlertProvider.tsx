@@ -81,7 +81,6 @@ export const AlertProvider = ({ children }: { children: React.ReactNode }) => {
               info: <Info fontSize='small' />,
             }}
             sx={{
-              borderRadius: 0,
               fontWeight: 600,
               letterSpacing: '0.01em',
               boxShadow: '0 12px 30px rgba(15, 23, 42, 0.2)',

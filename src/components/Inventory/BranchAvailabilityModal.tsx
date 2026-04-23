@@ -10,20 +10,28 @@ import {
   Stack,
   TextField,
   MenuItem,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
   Chip,
 } from '@mui/material';
+import {
+  MaterialReactTable,
+  useMaterialReactTable,
+  type MRT_ColumnDef,
+} from 'material-react-table';
 import type { IProduct } from '../../types';
 import { branches } from '../../data/branches';
+import { buildMrtOptions } from '../../utils/materialReactTable';
 
 interface BranchAvailability {
   branchId: string;
   stock: number;
 }
+
+type BranchAvailabilityRow = {
+  branchId: string;
+  branch: string;
+  stock: number;
+  isCurrent: boolean;
+};
 
 interface BranchAvailabilityModalProps {
   open: boolean;
@@ -108,6 +116,63 @@ export const BranchAvailabilityModal = ({
 
   const canRequest = availableBranches.length > 0;
 
+  const availabilityRows = useMemo<BranchAvailabilityRow[]>(
+    () =>
+      availability.map(row => ({
+        branchId: row.branchId,
+        branch: getBranchName(row.branchId),
+        stock: row.stock,
+        isCurrent: row.branchId === currentBranchId,
+      })),
+    [availability, currentBranchId]
+  );
+
+  const availabilityColumns = useMemo<MRT_ColumnDef<BranchAvailabilityRow>[]>(
+    () => [
+      {
+        accessorKey: 'branch',
+        header: 'Branch',
+        size: 220,
+        Cell: ({ row }) => (
+          <Box>
+            {row.original.branch}
+            {row.original.isCurrent && (
+              <Chip label='Current' size='small' sx={{ ml: 1 }} />
+            )}
+          </Box>
+        ),
+      },
+      { accessorKey: 'stock', header: 'Stock', size: 100 },
+      {
+        id: 'status',
+        header: 'Status',
+        size: 140,
+        Cell: ({ row }) => (
+          <Chip
+            label={row.original.stock > 0 ? 'Available' : 'Out'}
+            size='small'
+            color={row.original.stock > 0 ? 'success' : 'default'}
+            variant='outlined'
+          />
+        ),
+      },
+    ],
+    []
+  );
+
+  const availabilityTable = useMaterialReactTable(
+    buildMrtOptions({
+      columns: availabilityColumns,
+      data: availabilityRows,
+      enablePagination: false,
+      muiTablePaperProps: {
+        sx: {
+          boxShadow: 'none',
+        },
+      },
+    })
+  );
+
   return (
     <Dialog open={open} onClose={handleClose} maxWidth='md' fullWidth>
       <DialogTitle
@@ -132,44 +197,7 @@ export const BranchAvailabilityModal = ({
             </Box>
 
             <Box>
-              <Table size='small'>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Branch</TableCell>
-                    <TableCell>Stock</TableCell>
-                    <TableCell>Status</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {availability.map(row => {
-                    const isCurrent = row.branchId === currentBranchId;
-                    return (
-                      <TableRow key={row.branchId}>
-                        <TableCell>
-                          {getBranchName(row.branchId)}
-                          {isCurrent && (
-                            <Chip
-                              label='Current'
-                              size='small'
-                              sx={{ ml: 1, borderRadius: 0 }}
-                            />
-                          )}
-                        </TableCell>
-                        <TableCell>{row.stock}</TableCell>
-                        <TableCell>
-                          <Chip
-                            label={row.stock > 0 ? 'Available' : 'Out'}
-                            size='small'
-                            color={row.stock > 0 ? 'success' : 'default'}
-                            variant='outlined'
-                            sx={{ borderRadius: 0 }}
-                          />
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+              <MaterialReactTable table={availabilityTable} />
             </Box>
 
             <Box sx={{ borderTop: '1px solid', borderColor: 'divider', pt: 2 }}>
@@ -237,17 +265,12 @@ export const BranchAvailabilityModal = ({
       <DialogActions
         sx={{ borderTop: '1px solid', borderColor: 'divider', p: 2 }}
       >
-        <Button
-          onClick={handleClose}
-          variant='outlined'
-          sx={{ borderRadius: 0 }}
-        >
+        <Button onClick={handleClose} variant='outlined'>
           Close
         </Button>
         <Button
           onClick={handleRequest}
           variant='contained'
-          sx={{ borderRadius: 0 }}
           disabled={!canRequest}
         >
           Send Request

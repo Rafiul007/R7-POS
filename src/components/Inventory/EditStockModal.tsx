@@ -66,17 +66,7 @@ export const EditStockModal = ({
     quantity && product ? Number(quantity) - (product.stock || 0) : 0;
 
   return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      maxWidth='sm'
-      fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: 0,
-        },
-      }}
-    >
+    <Dialog open={open} onClose={handleClose} maxWidth='sm' fullWidth>
       <DialogTitle
         sx={{
           fontWeight: 700,
@@ -96,8 +86,7 @@ export const EditStockModal = ({
             <Box
               sx={{
                 p: 2,
-                backgroundColor: '#f5f5f5',
-                borderRadius: 0,
+                backgroundColor: 'background.default',
                 border: '1px solid',
                 borderColor: 'divider',
               }}
@@ -132,11 +121,6 @@ export const EditStockModal = ({
             error={!!error}
             helperText={error}
             autoFocus
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 0,
-              },
-            }}
           />
 
           {/* Change Summary */}
@@ -146,7 +130,6 @@ export const EditStockModal = ({
                 p: 2,
                 backgroundColor:
                   difference > 0 ? 'success.light' : 'warning.light',
-                borderRadius: 0,
                 border: '1px solid',
                 borderColor: difference > 0 ? 'success.main' : 'warning.main',
               }}
@@ -208,10 +191,7 @@ export const EditStockModal = ({
         <Button
           onClick={handleClose}
           variant='outlined'
-          sx={{
-            textTransform: 'none',
-            borderRadius: 0,
-          }}
+          sx={{ textTransform: 'none' }}
         >
           Cancel
         </Button>
@@ -220,10 +200,7 @@ export const EditStockModal = ({
           variant='contained'
           startIcon={<Edit />}
           disabled={!quantity || !!error}
-          sx={{
-            textTransform: 'none',
-            borderRadius: 0,
-          }}
+          sx={{ textTransform: 'none' }}
         >
           Update Stock
         </Button>

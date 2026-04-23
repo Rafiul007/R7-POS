@@ -4,12 +4,20 @@ import {
   Typography,
   IconButton,
   Avatar,
+  ButtonBase,
   Menu,
   MenuItem,
   Divider,
+  Stack,
 } from '@mui/material';
-import { AccountCircle, Logout } from '@mui/icons-material';
-import { useTheme } from '@mui/material/styles';
+import {
+  AccountCircle,
+  KeyboardArrowDown,
+  Logout,
+  NotificationsNone,
+} from '@mui/icons-material';
+import { alpha, useTheme } from '@mui/material/styles';
+import { useAuth } from '../auth';
 
 interface UserMenuProps {
   anchorEl: HTMLElement | null;
@@ -25,34 +33,81 @@ export const UserMenu: React.FC<UserMenuProps> = ({
   onLogout,
 }) => {
   const theme = useTheme();
+  const { role } = useAuth();
 
   return (
     <>
-      {/* User Menu Trigger */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Typography
-          variant='body2'
-          sx={{ display: { xs: 'none', sm: 'block' } }}
-        >
-          Welcome, User
-        </Typography>
         <IconButton
-          size='large'
+          size='small'
+          aria-label='notifications'
+          sx={{
+            border: '1px solid',
+            borderColor: 'divider',
+            color: 'text.primary',
+            bgcolor: 'background.paper',
+            '&:hover': {
+              bgcolor: alpha(theme.palette.primary.main, 0.04),
+            },
+          }}
+        >
+          <NotificationsNone fontSize='small' />
+        </IconButton>
+
+        <ButtonBase
           aria-label='account of current user'
           aria-controls='primary-search-account-menu'
           aria-haspopup='true'
-          color='inherit'
           onClick={onMenuOpen}
+          sx={{
+            borderRadius: 3,
+            overflow: 'hidden',
+          }}
         >
-          <Avatar
-            sx={{ width: 32, height: 32, bgcolor: theme.palette.primary.main }}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.25,
+              px: 1.25,
+              py: 0.75,
+              border: '1px solid',
+              borderColor: 'divider',
+              bgcolor: 'background.paper',
+            }}
           >
-            <AccountCircle />
-          </Avatar>
-        </IconButton>
+            <Avatar
+              sx={{
+                width: 36,
+                height: 36,
+                bgcolor: alpha(theme.palette.primary.main, 0.14),
+                color: theme.palette.primary.dark,
+              }}
+            >
+              <AccountCircle />
+            </Avatar>
+            <Stack
+              spacing={0.1}
+              sx={{ display: { xs: 'none', sm: 'flex' }, textAlign: 'left' }}
+            >
+              <Typography variant='body2' sx={{ fontWeight: 700 }}>
+                Store Admin
+              </Typography>
+              <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+                {role ? `${role[0].toUpperCase()}${role.slice(1)}` : 'Staff'}
+              </Typography>
+            </Stack>
+            <KeyboardArrowDown
+              sx={{
+                display: { xs: 'none', sm: 'block' },
+                color: alpha(theme.palette.text.secondary, 0.9),
+              }}
+              fontSize='small'
+            />
+          </Box>
+        </ButtonBase>
       </Box>
 
-      {/* User Menu Dropdown */}
       <Menu
         id='primary-search-account-menu'
         anchorEl={anchorEl}

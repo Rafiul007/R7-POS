@@ -32,20 +32,17 @@ export const Signup = () => {
         overflow: 'hidden',
         background: theme =>
           `radial-gradient(700px circle at 12% 18%, ${alpha(
-            theme.palette.primary.main,
-            0.18
+            theme.palette.info.main,
+            0.4
           )} 0%, transparent 55%),
            radial-gradient(600px circle at 82% 12%, ${alpha(
-             theme.palette.info.main,
+             theme.palette.secondary.main,
              0.18
            )} 0%, transparent 60%),
            linear-gradient(180deg, ${alpha(
-             theme.palette.primary.main,
-             0.08
-           )} 0%, ${alpha(theme.palette.info.main, 0)} 55%)`,
-        '& .MuiTypography-root': {
-          fontFamily: '"Space Grotesk", "Helvetica", "Arial", sans-serif',
-        },
+             theme.palette.primary.light,
+             0.12
+           )} 0%, ${alpha(theme.palette.primary.main, 0.02)} 55%)`,
       }}
     >
       <Paper
@@ -53,11 +50,11 @@ export const Signup = () => {
           width: '100%',
           maxWidth: 1020,
           p: 0,
-          borderRadius: 0,
           border: '1px solid',
-          borderColor: 'divider',
+          borderColor: theme => alpha(theme.palette.primary.main, 0.08),
           textAlign: 'left',
-          boxShadow: '0 10px 40px rgba(15, 23, 42, 0.08)',
+          boxShadow: theme =>
+            `0 18px 40px ${alpha(theme.palette.primary.dark, 0.08)}`,
         }}
       >
         <Box
@@ -81,9 +78,9 @@ export const Signup = () => {
                 height: 52,
                 display: 'grid',
                 placeItems: 'center',
-                borderRadius: 0,
+                borderRadius: 4,
                 border: '1px solid',
-                borderColor: 'divider',
+                borderColor: theme => alpha(theme.palette.primary.main, 0.1),
                 bgcolor: 'primary.main',
                 color: 'primary.contrastText',
                 fontWeight: 700,
@@ -125,12 +122,7 @@ export const Signup = () => {
                 fullWidth
                 size='small'
               />
-              <Button
-                variant='contained'
-                size='large'
-                sx={{ borderRadius: 0 }}
-                onClick={handleSignup}
-              >
+              <Button variant='contained' size='large' onClick={handleSignup}>
                 Create Account
               </Button>
               <Button

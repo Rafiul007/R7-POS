@@ -9,11 +9,6 @@ import {
   TextField,
   Divider,
   Chip,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -21,7 +16,11 @@ import {
   InputAdornment,
   MenuItem,
 } from '@mui/material';
-import { alpha } from '@mui/material/styles';
+import {
+  MaterialReactTable,
+  useMaterialReactTable,
+  type MRT_ColumnDef,
+} from 'material-react-table';
 import {
   AccountBalanceWallet,
   Add,
@@ -37,6 +36,7 @@ import {
   getCurrentBranchId,
   setCurrentBranchId,
 } from '../data/branchInventoryStore';
+import { buildMrtOptions } from '../utils/materialReactTable';
 
 interface CashMovement {
   id: string;
@@ -208,15 +208,47 @@ export const Drawer = () => {
       ? shift.countedCash - totals.expectedCash
       : null;
 
+  const movementColumns = useMemo<MRT_ColumnDef<CashMovement>[]>(
+    () => [
+      {
+        accessorKey: 'type',
+        header: 'Type',
+        size: 120,
+        Cell: ({ cell }) =>
+          cell.getValue<CashMovement['type']>() === 'in'
+            ? 'Cash In'
+            : 'Cash Out',
+      },
+      {
+        accessorKey: 'amount',
+        header: 'Amount',
+        size: 110,
+        Cell: ({ cell }) => `$${cell.getValue<number>().toFixed(2)}`,
+      },
+      { accessorKey: 'reason', header: 'Reason', size: 260 },
+      {
+        accessorKey: 'timestamp',
+        header: 'Time',
+        size: 200,
+        Cell: ({ cell }) => new Date(cell.getValue<string>()).toLocaleString(),
+      },
+    ],
+    []
+  );
+
+  const movementTable = useMaterialReactTable(
+    buildMrtOptions({
+      columns: movementColumns,
+      data: moves,
+      enablePagination: moves.length > 8,
+    })
+  );
+
   return (
     <Box
       sx={{
         minHeight: '100%',
-        background: theme =>
-          `linear-gradient(180deg, ${alpha(
-            theme.palette.primary.main,
-            0.1
-          )} 0%, ${alpha(theme.palette.info.main, 0)} 45%)`,
+        backgroundColor: 'background.default',
       }}
     >
       <Box
@@ -250,7 +282,6 @@ export const Drawer = () => {
             label={shift?.status === 'open' ? 'Shift Open' : 'Shift Closed'}
             color={shift?.status === 'open' ? 'success' : 'default'}
             variant='outlined'
-            sx={{ borderRadius: 0 }}
           />
         </Stack>
 
@@ -258,7 +289,6 @@ export const Drawer = () => {
           <Card
             sx={{
               flex: 1,
-              borderRadius: 0,
               border: '1px solid',
               borderColor: 'divider',
             }}
@@ -312,7 +342,6 @@ export const Drawer = () => {
           <Card
             sx={{
               flex: 1,
-              borderRadius: 0,
               border: '1px solid',
               borderColor: 'divider',
             }}
@@ -327,7 +356,6 @@ export const Drawer = () => {
                   startIcon={<LockOpen />}
                   disabled={shift?.status === 'open'}
                   onClick={() => setOpenShiftDialog(true)}
-                  sx={{ borderRadius: 0 }}
                 >
                   Open Shift
                 </Button>
@@ -336,7 +364,6 @@ export const Drawer = () => {
                   startIcon={<Lock />}
                   disabled={!shift || shift.status !== 'open'}
                   onClick={() => setCloseShiftDialog(true)}
-                  sx={{ borderRadius: 0 }}
                 >
                   Close Shift
                 </Button>
@@ -346,7 +373,6 @@ export const Drawer = () => {
                   startIcon={<Add />}
                   disabled={!shift || shift.status !== 'open'}
                   onClick={() => setCashDialog('in')}
-                  sx={{ borderRadius: 0 }}
                 >
                   Cash In
                 </Button>
@@ -356,7 +382,6 @@ export const Drawer = () => {
                   startIcon={<Remove />}
                   disabled={!shift || shift.status !== 'open'}
                   onClick={() => setCashDialog('out')}
-                  sx={{ borderRadius: 0 }}
                 >
                   Cash Out
                 </Button>
@@ -376,16 +401,13 @@ export const Drawer = () => {
                     <InputAdornment position='start'>$</InputAdornment>
                   ),
                 }}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 0 } }}
                 helperText='Enter cash sales total if not synced from payments.'
               />
             </CardContent>
           </Card>
         </Stack>
 
-        <Card
-          sx={{ borderRadius: 0, border: '1px solid', borderColor: 'divider' }}
-        >
+        <Card sx={{ border: '1px solid', borderColor: 'divider' }}>
           <CardContent>
             <Stack
               direction='row'
@@ -405,36 +427,7 @@ export const Drawer = () => {
                 </Typography>
               </Stack>
             </Stack>
-            <Table size='small'>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Type</TableCell>
-                  <TableCell>Amount</TableCell>
-                  <TableCell>Reason</TableCell>
-                  <TableCell>Time</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {moves.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4}>No cash movements yet.</TableCell>
-                  </TableRow>
-                ) : (
-                  moves.map(move => (
-                    <TableRow key={move.id}>
-                      <TableCell>
-                        {move.type === 'in' ? 'Cash In' : 'Cash Out'}
-                      </TableCell>
-                      <TableCell>${move.amount.toFixed(2)}</TableCell>
-                      <TableCell>{move.reason}</TableCell>
-                      <TableCell>
-                        {new Date(move.timestamp).toLocaleString()}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+            <MaterialReactTable table={movementTable} />
           </CardContent>
         </Card>
       </Box>

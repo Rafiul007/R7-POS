@@ -72,27 +72,27 @@ export const Login = () => {
         overflow: 'hidden',
         background: theme =>
           `radial-gradient(700px circle at 10% 20%, ${alpha(
-            theme.palette.primary.main,
-            0.18
+            theme.palette.info.main,
+            0.4
           )} 0%, transparent 55%),
            radial-gradient(600px circle at 80% 10%, ${alpha(
-             theme.palette.info.main,
+             theme.palette.secondary.main,
              0.18
            )} 0%, transparent 60%),
            linear-gradient(180deg, ${alpha(
-             theme.palette.primary.main,
-             0.08
-           )} 0%, ${alpha(theme.palette.info.main, 0)} 55%)`,
+             theme.palette.primary.light,
+             0.12
+           )} 0%, ${alpha(theme.palette.primary.main, 0.02)} 55%)`,
       }}
     >
       <Paper
         sx={{
           width: '100%',
           maxWidth: 960,
-          borderRadius: 0,
           border: '1px solid',
-          borderColor: 'divider',
-          boxShadow: '0 10px 40px rgba(15, 23, 42, 0.08)',
+          borderColor: theme => alpha(theme.palette.primary.main, 0.08),
+          boxShadow: theme =>
+            `0 18px 40px ${alpha(theme.palette.primary.dark, 0.08)}`,
         }}
       >
         <Box
@@ -144,7 +144,6 @@ export const Login = () => {
                 type='submit'
                 variant='contained'
                 size='large'
-                sx={{ borderRadius: 0 }}
                 disabled={loginMutation.isPending}
               >
                 {loginMutation.isPending ? 'Signing in...' : 'Sign In'}

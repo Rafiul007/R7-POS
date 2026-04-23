@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import { Box, Typography, IconButton, Tooltip, Stack } from '@mui/material';
-import { alpha } from '@mui/material/styles';
 import { Add } from '@mui/icons-material';
 import {
   PaymentsFilters,
@@ -134,14 +133,7 @@ export const Payments = () => {
     <Box
       sx={{
         minHeight: '100%',
-        background: theme =>
-          `linear-gradient(180deg, ${alpha(
-            theme.palette.primary.main,
-            0.12
-          )} 0%, ${alpha(theme.palette.info.main, 0)} 45%)`,
-        '& .MuiTypography-root': {
-          fontFamily: '"Space Grotesk", "Helvetica", "Arial", sans-serif',
-        },
+        backgroundColor: 'background.default',
       }}
     >
       <Box

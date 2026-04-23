@@ -6,6 +6,7 @@ import {
   Stack,
   Button,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { Search, Tune, Refresh } from '@mui/icons-material';
 
 export interface InventoryFiltersState {
@@ -40,6 +41,8 @@ export const InventoryFilters = ({
         flexDirection: { xs: 'column', md: 'row' },
         gap: 2,
         alignItems: { xs: 'stretch', md: 'flex-end' },
+        border: '1px solid',
+        borderColor: theme => alpha(theme.palette.primary.dark, 0.08),
       }}
     >
       {/* Search */}
@@ -54,9 +57,6 @@ export const InventoryFilters = ({
         sx={{
           flex: 1,
           minWidth: { xs: '100%', md: '300px' },
-          '& .MuiOutlinedInput-root': {
-            borderRadius: 0,
-          },
         }}
       />
 
@@ -68,7 +68,6 @@ export const InventoryFilters = ({
         displayEmpty
         sx={{
           minWidth: { xs: '100%', md: '200px' },
-          borderRadius: 0,
         }}
       >
         <MenuItem value=''>All Categories</MenuItem>
@@ -87,7 +86,6 @@ export const InventoryFilters = ({
         displayEmpty
         sx={{
           minWidth: { xs: '100%', md: '200px' },
-          borderRadius: 0,
         }}
       >
         <MenuItem value=''>All Stock Levels</MenuItem>
@@ -104,7 +102,6 @@ export const InventoryFilters = ({
         displayEmpty
         sx={{
           minWidth: { xs: '100%', md: '200px' },
-          borderRadius: 0,
         }}
       >
         <MenuItem value=''>All Status</MenuItem>
@@ -119,10 +116,7 @@ export const InventoryFilters = ({
           size='small'
           startIcon={<Refresh />}
           onClick={onReset}
-          sx={{
-            textTransform: 'none',
-            borderRadius: 0,
-          }}
+          sx={{ textTransform: 'none' }}
         >
           Reset
         </Button>
@@ -130,10 +124,7 @@ export const InventoryFilters = ({
           variant='contained'
           size='small'
           startIcon={<Tune />}
-          sx={{
-            textTransform: 'none',
-            borderRadius: 0,
-          }}
+          sx={{ textTransform: 'none' }}
         >
           Apply
         </Button>

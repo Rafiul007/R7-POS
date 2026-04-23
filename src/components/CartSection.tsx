@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Typography, Divider, Avatar, Badge } from '@mui/material';
 import { ShoppingCart } from '@mui/icons-material';
+import { alpha, useTheme } from '@mui/material/styles';
 import { useAppSelector } from '../store/hooks';
 import { selectCartTotalItems, selectCartTotalPrice } from '../store/selectors';
 
@@ -9,12 +10,13 @@ interface CartSectionProps {
 }
 
 export const CartSection: React.FC<CartSectionProps> = ({ onClick }) => {
+  const theme = useTheme();
   const itemCount = useAppSelector(selectCartTotalItems);
   const totalPrice = useAppSelector(selectCartTotalPrice);
 
   return (
     <>
-      <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.3)', mt: 'auto' }} />
+      <Divider sx={{ mt: 'auto', mx: 2 }} />
       <Box
         onClick={onClick}
         sx={{
@@ -22,16 +24,18 @@ export const CartSection: React.FC<CartSectionProps> = ({ onClick }) => {
           display: 'flex',
           alignItems: 'center',
           gap: 2,
-          backgroundColor: 'rgba(255, 255, 255, 0.1)',
-          borderRadius: 1,
-          mx: 1,
-          mb: 1,
+          backgroundColor: alpha(theme.palette.common.white, 0.05),
+          border: '1px solid',
+          borderColor: alpha(theme.palette.common.white, 0.08),
+          borderRadius: 3,
+          mx: 2,
+          mt: 1.5,
+          mb: 2,
           cursor: onClick ? 'pointer' : 'default',
           transition: 'all 0.2s ease-in-out',
           '&:hover': onClick
             ? {
-                backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                transform: 'translateY(-2px)',
+                backgroundColor: alpha(theme.palette.common.white, 0.08),
               }
             : {},
         }}
@@ -41,19 +45,19 @@ export const CartSection: React.FC<CartSectionProps> = ({ onClick }) => {
           color='secondary'
           sx={{
             '& .MuiBadge-badge': {
-              backgroundColor: '#ff6b6b',
-              color: 'white',
+              backgroundColor: theme.palette.secondary.main,
+              color: theme.palette.secondary.contrastText,
             },
           }}
         >
           <Avatar
             sx={{
-              bgcolor: 'rgba(255, 255, 255, 0.2)',
+              bgcolor: alpha(theme.palette.primary.main, 0.16),
               width: 40,
               height: 40,
             }}
           >
-            <ShoppingCart sx={{ color: 'rgba(255, 255, 255, 0.9)' }} />
+            <ShoppingCart sx={{ color: theme.palette.primary.light }} />
           </Avatar>
         </Badge>
 
@@ -61,7 +65,7 @@ export const CartSection: React.FC<CartSectionProps> = ({ onClick }) => {
           <Typography
             variant='body2'
             sx={{
-              color: 'rgba(255, 255, 255, 0.7)',
+              color: alpha(theme.palette.common.white, 0.64),
               fontSize: '0.75rem',
             }}
           >
@@ -70,7 +74,7 @@ export const CartSection: React.FC<CartSectionProps> = ({ onClick }) => {
           <Typography
             variant='h6'
             sx={{
-              color: 'rgba(255, 255, 255, 0.9)',
+              color: '#ffffff',
               fontWeight: 600,
               fontSize: '1rem',
             }}

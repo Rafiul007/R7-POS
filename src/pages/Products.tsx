@@ -1,21 +1,21 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   Alert,
-  Typography,
   Box,
-  CircularProgress,
-  Grid,
-  Stack,
-  TextField,
-  InputAdornment,
-  Chip,
-  Divider,
-  FormControlLabel,
-  Switch,
   Button,
+  Chip,
+  CircularProgress,
+  FormControlLabel,
+  Grid,
+  InputAdornment,
+  Paper,
+  Stack,
+  Switch,
+  TextField,
+  Typography,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import { Search, QrCodeScanner } from '@mui/icons-material';
+import { QrCodeScanner, Search } from '@mui/icons-material';
 import { ProductGridItem } from '../components';
 import { useAppDispatch } from '../store/hooks';
 import { addItem } from '../store/cartSlice';
@@ -33,7 +33,8 @@ export const Products = () => {
   const [autoCapture, setAutoCapture] = useState(true);
   const barcodeInputRef = useRef<HTMLInputElement | null>(null);
   const { data, isError, isLoading } = useProducts({ search });
-  const products = data?.products ?? [];
+  const products = useMemo(() => data?.products ?? [], [data]);
+  const totalProducts = data?.pagination.total ?? products.length;
 
   const handleBarcode = useCallback(
     (barcode: string) => {
@@ -91,71 +92,39 @@ export const Products = () => {
     <Box
       sx={{
         minHeight: '100%',
-        px: { xs: 2, sm: 3, md: 6 },
-        py: { xs: 4, md: 6 },
-        background: theme =>
-          `linear-gradient(180deg, ${alpha(
-            theme.palette.primary.main,
-            0.12
-          )} 0%, ${alpha(theme.palette.info.main, 0)} 45%)`,
+        px: { xs: 2, sm: 3, md: 4 },
+        py: { xs: 3, md: 4 },
+        backgroundColor: 'background.default',
       }}
     >
-      <Box
-        sx={{
-          width: '100%',
-        }}
-      >
-        <Stack spacing={2} sx={{ mb: { xs: 3, md: 4 } }}>
-          <Typography
-            variant='overline'
-            sx={{
-              letterSpacing: '0.22em',
-              color: 'text.secondary',
-              fontWeight: 600,
-              textAlign: 'left',
-            }}
-          >
-            Products
-          </Typography>
-          <Typography
-            variant='body2'
-            sx={{ color: 'text.secondary', textAlign: 'left' }}
-          >
-            {isLoading
-              ? 'Loading products...'
-              : `${data?.pagination.total ?? products.length} items available`}
-          </Typography>
-        </Stack>
-
-        <Box
-          sx={{
-            mb: { xs: 3, md: 4 },
-            border: '1px solid',
-            borderColor: 'divider',
-            borderRadius: 0,
-            backgroundColor: theme =>
-              alpha(theme.palette.background.paper, 0.85),
-            boxShadow: '0 10px 24px rgba(15, 23, 42, 0.08)',
-          }}
+      <Stack spacing={2.5}>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={1.5}
+          justifyContent='space-between'
+          alignItems={{ xs: 'flex-start', sm: 'center' }}
         >
-          <Box
-            sx={{
-              px: { xs: 2, sm: 3 },
-              py: 2,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              backgroundColor: theme => alpha(theme.palette.primary.main, 0.08),
-            }}
-          >
-            <Stack spacing={0.5}>
-              <Typography variant='subtitle2' sx={{ letterSpacing: '0.12em' }}>
-                FIND & SCAN
-              </Typography>
-              <Typography variant='body2' color='text.secondary'>
-                Search inventory or scan barcode to add to cart
-              </Typography>
-            </Stack>
+          <Box>
+            <Typography
+              variant='overline'
+              sx={{
+                letterSpacing: '0.18em',
+                color: 'text.secondary',
+                fontWeight: 700,
+              }}
+            >
+              POS
+            </Typography>
+            <Typography variant='h5' sx={{ fontWeight: 800 }}>
+              Products
+            </Typography>
+          </Box>
+
+          <Stack direction='row' spacing={1} flexWrap='wrap' useFlexGap>
+            <Chip
+              label={isLoading ? 'Loading...' : `${totalProducts} products`}
+              sx={{ fontWeight: 700 }}
+            />
             <Chip
               label={scanMessage}
               color={
@@ -166,46 +135,44 @@ export const Products = () => {
                     : 'default'
               }
               variant='outlined'
-              sx={{ borderRadius: 0, fontWeight: 600 }}
+              sx={{ fontWeight: 700 }}
             />
-          </Box>
+          </Stack>
+        </Stack>
 
-          <Divider />
-
-          <Box
-            sx={{
-              p: { xs: 2, sm: 3 },
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', md: '1.1fr 0.9fr' },
-              gap: 2,
-            }}
-          >
-            <TextField
-              placeholder='Search products by name, SKU, or category'
-              variant='outlined'
-              fullWidth
-              size='small'
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position='start'>
-                    <Search fontSize='small' />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  backgroundColor: theme =>
-                    alpha(theme.palette.background.paper, 0.95),
-                },
-              }}
-            />
-
-            <Stack spacing={1}>
+        <Paper
+          sx={{
+            p: { xs: 2, md: 2.5 },
+            borderRadius: 4,
+            background: theme =>
+              `linear-gradient(180deg, ${alpha(
+                theme.palette.background.paper,
+                1
+              )} 0%, ${alpha(theme.palette.primary.main, 0.02)} 100%)`,
+          }}
+        >
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, lg: 6 }}>
               <TextField
-                label='Barcode'
-                placeholder='Scan or type then press Enter'
+                placeholder='Search by name, SKU, or category'
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position='start'>
+                      <Search fontSize='small' />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12, lg: 4 }}>
+              <TextField
+                placeholder='Scan barcode and press Enter'
                 variant='outlined'
                 fullWidth
                 size='small'
@@ -226,38 +193,45 @@ export const Products = () => {
                     </InputAdornment>
                   ),
                 }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    backgroundColor: theme =>
-                      alpha(theme.palette.background.paper, 0.95),
-                  },
-                }}
               />
-              <Stack direction='row' spacing={1} alignItems='center'>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={autoCapture}
-                      onChange={e => setAutoCapture(e.target.checked)}
-                    />
-                  }
-                  label='Auto-capture scanner'
+            </Grid>
+
+            <Grid size={{ xs: 12, lg: 2 }}>
+              <Button
+                fullWidth
+                variant='outlined'
+                onClick={() => barcodeInputRef.current?.focus()}
+                sx={{ height: '100%' }}
+              >
+                Focus Scanner
+              </Button>
+            </Grid>
+          </Grid>
+
+          <Stack
+            direction={{ xs: 'column', md: 'row' }}
+            spacing={1.5}
+            justifyContent='space-between'
+            alignItems={{ xs: 'flex-start', md: 'center' }}
+            sx={{ mt: 1.5 }}
+          >
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={autoCapture}
+                  onChange={e => setAutoCapture(e.target.checked)}
                 />
-                <Button
-                  variant='outlined'
-                  size='small'
-                  onClick={() => barcodeInputRef.current?.focus()}
-                  sx={{ borderRadius: 0 }}
-                >
-                  Focus Scanner
-                </Button>
-              </Stack>
-            </Stack>
-          </Box>
-        </Box>
+              }
+              label='Auto-capture scanner'
+            />
+            <Typography variant='body2' color='text.secondary'>
+              Select a product or scan a code to add it to the sale.
+            </Typography>
+          </Stack>
+        </Paper>
 
         {isLoading ? (
-          <Stack alignItems='center' sx={{ py: 6 }}>
+          <Stack alignItems='center' sx={{ py: 8 }}>
             <CircularProgress />
           </Stack>
         ) : isError ? (
@@ -265,13 +239,13 @@ export const Products = () => {
         ) : products.length === 0 ? (
           <Alert severity='info'>No products found.</Alert>
         ) : (
-          <Grid container spacing={1} justifyContent='flex-start'>
+          <Grid container spacing={2}>
             {products.map(product => (
               <ProductGridItem key={product.id} product={product} />
             ))}
           </Grid>
         )}
-      </Box>
+      </Stack>
     </Box>
   );
 };

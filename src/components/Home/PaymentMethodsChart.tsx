@@ -14,23 +14,22 @@ interface PaymentMethodsChartProps {
 export const PaymentMethodsChart = ({ data }: PaymentMethodsChartProps) => {
   const theme = useTheme();
   const colors = [
+    theme.palette.secondary.main,
     theme.palette.primary.main,
-    alpha(theme.palette.primary.main, 0.7),
-    alpha(theme.palette.primary.main, 0.45),
-    alpha(theme.palette.primary.main, 0.25),
+    theme.palette.warning.main,
+    theme.palette.info.dark,
   ];
 
   return (
     <Paper
       sx={{
         p: 3,
-        borderRadius: 0,
         border: '1px solid',
-        borderColor: 'divider',
-        backgroundColor: theme => alpha(theme.palette.background.paper, 0.92),
-        '& .MuiTypography-root': {
-          fontFamily: '"Space Grotesk", "Helvetica", "Arial", sans-serif',
-        },
+        borderColor: alpha(theme.palette.secondary.main, 0.16),
+        background: `linear-gradient(180deg, ${alpha(
+          theme.palette.secondary.main,
+          0.08
+        )} 0%, ${alpha(theme.palette.background.paper, 0.98)} 42%)`,
       }}
     >
       <Box sx={{ mb: 2 }}>
@@ -60,9 +59,9 @@ export const PaymentMethodsChart = ({ data }: PaymentMethodsChartProps) => {
             <Tooltip
               formatter={(value: number) => `${value}%`}
               contentStyle={{
-                borderRadius: 0,
+                borderRadius: 16,
                 border: `1px solid ${theme.palette.divider}`,
-                boxShadow: 'none',
+                boxShadow: `0 10px 24px ${alpha(theme.palette.primary.dark, 0.08)}`,
               }}
             />
           </PieChart>

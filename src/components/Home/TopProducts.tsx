@@ -17,13 +17,13 @@ export const TopProducts = ({ data }: TopProductsProps) => {
     <Paper
       sx={{
         p: 3,
-        borderRadius: 0,
         border: '1px solid',
-        borderColor: 'divider',
-        backgroundColor: theme => alpha(theme.palette.background.paper, 0.92),
-        '& .MuiTypography-root': {
-          fontFamily: '"Space Grotesk", "Helvetica", "Arial", sans-serif',
-        },
+        borderColor: theme => alpha(theme.palette.secondary.main, 0.14),
+        background: theme =>
+          `linear-gradient(180deg, ${alpha(
+            theme.palette.secondary.main,
+            0.08
+          )} 0%, ${alpha(theme.palette.background.paper, 0.98)} 44%)`,
       }}
     >
       <Box sx={{ mb: 2 }}>
@@ -43,6 +43,9 @@ export const TopProducts = ({ data }: TopProductsProps) => {
               alignItems: 'center',
               justifyContent: 'space-between',
               gap: 2,
+              p: 1.5,
+              borderRadius: 3,
+              backgroundColor: theme => alpha(theme.palette.common.white, 0.72),
             }}
           >
             <Box>

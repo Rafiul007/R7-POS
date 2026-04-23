@@ -5,14 +5,16 @@ import {
   CssBaseline,
   Drawer,
   IconButton,
+  Paper,
   Stack,
   Toolbar,
   Typography,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import MenuIcon from '@mui/icons-material/Menu';
-import { FiberManualRecord } from '@mui/icons-material';
+import { FiberManualRecord, KeyboardArrowDown } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
 import { DrawerContent } from './DrawerContent';
@@ -22,7 +24,7 @@ import { getShiftStatus } from '../utils/drawer';
 import { getBranchById } from '../data/branches';
 
 const DRAWER_WIDTH = 260;
-const APP_BAR_HEIGHT = 64;
+const APP_BAR_HEIGHT = 72;
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -39,6 +41,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [shiftInfo, setShiftInfo] = useState(() => getShiftStatus());
+  const activeBranch = shiftInfo.branchId
+    ? getBranchById(shiftInfo.branchId)
+    : getBranchById('branch-nyc');
 
   const toggleDrawer = () => setMobileOpen(prev => !prev);
 
@@ -51,9 +56,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       window.removeEventListener('drawer-shift-updated', handleShiftUpdate);
   }, []);
 
-  /**
-   * 🔑 SINGLE SOURCE OF TRUTH FOR NAVIGATION
-   */
   const handleNavigate = (path: string) => {
     navigate(path);
     if (isMobile) {
@@ -68,54 +70,104 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   };
 
   return (
-    <Box sx={{ display: 'flex', height: '100vh', width: '100vw' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', width: '100vw' }}>
       <CssBaseline />
 
-      {/* ───────────── TOP APP BAR ───────────── */}
       <AppBar
         position='fixed'
         sx={{
           height: APP_BAR_HEIGHT,
-          background: `linear-gradient(
-            135deg,
-            ${theme.palette.primary.dark},
-            ${theme.palette.primary.main}
-          )`,
+          width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
+          ml: { md: `${DRAWER_WIDTH}px` },
+          bgcolor: alpha(theme.palette.background.paper, 0.92),
+          color: 'text.primary',
+          backdropFilter: 'blur(18px)',
         }}
       >
-        <Toolbar sx={{ minHeight: APP_BAR_HEIGHT }}>
+        <Toolbar
+          sx={{
+            minHeight: APP_BAR_HEIGHT,
+            px: { xs: 2, md: 4 },
+            gap: 2,
+          }}
+        >
           {isMobile && (
             <IconButton
-              color='inherit'
+              color='default'
               edge='start'
               onClick={toggleDrawer}
-              sx={{ mr: 2 }}
+              sx={{
+                border: '1px solid',
+                borderColor: 'divider',
+                bgcolor: 'background.paper',
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.primary.main, 0.04),
+                },
+              }}
             >
               <MenuIcon />
             </IconButton>
           )}
 
-          <Typography variant='h6' sx={{ flexGrow: 1, fontWeight: 600 }}>
-            R7-POS
-          </Typography>
-
-          <Stack direction='row' spacing={1} alignItems='center' sx={{ mr: 2 }}>
-            <FiberManualRecord
+          <Paper
+            sx={{
+              flexGrow: 1,
+              maxWidth: 360,
+              px: 2,
+              py: 1.25,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 2,
+              borderRadius: 3,
+            }}
+          >
+            <Stack spacing={0.25} sx={{ minWidth: 0 }}>
+              <Typography
+                variant='body2'
+                sx={{ fontWeight: 700, lineHeight: 1.2 }}
+                noWrap
+              >
+                {activeBranch.name}
+              </Typography>
+              <Typography variant='caption' color='text.secondary' noWrap>
+                {activeBranch.code} · {activeBranch.city}
+              </Typography>
+            </Stack>
+            <KeyboardArrowDown
+              sx={{ color: 'text.secondary', flexShrink: 0 }}
               fontSize='small'
+            />
+          </Paper>
+
+          <Stack
+            direction='row'
+            spacing={1.25}
+            alignItems='center'
+            sx={{
+              px: 1.5,
+              py: 0.85,
+              bgcolor: alpha(theme.palette.primary.main, 0.08),
+              borderRadius: 999,
+              display: { xs: 'none', md: 'flex' },
+            }}
+          >
+            <FiberManualRecord
+              fontSize='inherit'
               sx={{
+                fontSize: 10,
                 color:
                   shiftInfo.status === 'open'
                     ? theme.palette.success.main
                     : theme.palette.error.main,
               }}
             />
-            <Typography variant='body2' sx={{ fontWeight: 600 }}>
+            <Typography
+              variant='body2'
+              sx={{ fontWeight: 600, color: 'text.primary' }}
+            >
               {shiftInfo.status === 'open'
-                ? `Shift Open · ${shiftInfo.openedBy || 'Unassigned'} · ${
-                    shiftInfo.branchId
-                      ? getBranchById(shiftInfo.branchId).code
-                      : 'No branch'
-                  }`
+                ? `Shift Open · ${shiftInfo.openedBy || 'Unassigned'}`
                 : 'Shift Closed'}
             </Typography>
           </Stack>
@@ -129,9 +181,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         </Toolbar>
       </AppBar>
 
-      {/* ───────────── SIDEBAR ───────────── */}
       <Box component='nav' sx={{ width: { md: DRAWER_WIDTH }, flexShrink: 0 }}>
-        {/* Mobile Drawer */}
         <Drawer
           variant='temporary'
           open={mobileOpen}
@@ -141,15 +191,17 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             display: { xs: 'block', md: 'none' },
             '& .MuiDrawer-paper': {
               width: DRAWER_WIDTH,
-              background: `linear-gradient(180deg, #1976d2, #2196f3)`,
-              color: '#fff',
+              background: `linear-gradient(180deg, ${theme.palette.common.black} 0%, ${alpha(
+                '#101217',
+                0.98
+              )} 100%)`,
+              color: '#f7f8fb',
             },
           }}
         >
           <DrawerContent onNavigate={handleNavigate} />
         </Drawer>
 
-        {/* Desktop Drawer */}
         <Drawer
           variant='permanent'
           open
@@ -157,11 +209,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             display: { xs: 'none', md: 'block' },
             '& .MuiDrawer-paper': {
               width: DRAWER_WIDTH,
-              top: APP_BAR_HEIGHT,
-              height: `calc(100% - ${APP_BAR_HEIGHT}px)`,
-              background: `linear-gradient(180deg, #1976d2, #2196f3)`,
-              color: '#fff',
-              borderRight: 'none',
+              height: '100%',
+              background: `linear-gradient(180deg, ${theme.palette.common.black} 0%, ${alpha(
+                '#101217',
+                0.98
+              )} 100%)`,
+              color: '#f7f8fb',
             },
           }}
         >
@@ -169,7 +222,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         </Drawer>
       </Box>
 
-      {/* ───────────── MAIN CONTENT ───────────── */}
       <Box
         component='main'
         sx={{

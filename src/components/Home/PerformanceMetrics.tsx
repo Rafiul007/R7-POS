@@ -24,13 +24,12 @@ export const PerformanceMetrics = ({
     <Paper
       sx={{
         p: 3,
-        borderRadius: 0,
         border: '1px solid',
-        borderColor: 'divider',
-        backgroundColor: theme => alpha(theme.palette.background.paper, 0.92),
-        '& .MuiTypography-root': {
-          fontFamily: '"Space Grotesk", "Helvetica", "Arial", sans-serif',
-        },
+        borderColor: alpha(theme.palette.warning.main, 0.18),
+        background: `linear-gradient(180deg, ${alpha(
+          theme.palette.warning.light,
+          0.12
+        )} 0%, ${alpha(theme.palette.background.paper, 0.98)} 44%)`,
       }}
     >
       <Box sx={{ mb: 2 }}>
@@ -51,8 +50,12 @@ export const PerformanceMetrics = ({
             sx={{
               p: 2,
               border: '1px solid',
-              borderColor: 'divider',
-              backgroundColor: alpha(theme.palette.primary.main, 0.04),
+              borderColor: alpha(theme.palette.warning.main, 0.12),
+              background: `linear-gradient(135deg, ${alpha(
+                theme.palette.warning.light,
+                0.18
+              )} 0%, ${alpha(theme.palette.secondary.light, 0.14)} 100%)`,
+              borderRadius: 4,
             }}
           >
             <Typography

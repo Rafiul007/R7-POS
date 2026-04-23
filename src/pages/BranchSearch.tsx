@@ -5,17 +5,16 @@ import {
   Stack,
   TextField,
   InputAdornment,
-  Paper,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
   Chip,
   Button,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { Search } from '@mui/icons-material';
+import {
+  MaterialReactTable,
+  useMaterialReactTable,
+  type MRT_ColumnDef,
+} from 'material-react-table';
 import { BranchAvailabilityModal } from '../components/Inventory';
 import { getAllProducts } from '../data/productStore';
 import {
@@ -29,6 +28,16 @@ import { useAlert } from '../hooks';
 import { getShiftStatus } from '../utils/drawer';
 import { getCurrentBranchId } from '../data/branchInventoryStore';
 import type { IProduct } from '../types';
+import { buildMrtOptions } from '../utils/materialReactTable';
+
+type TransferRequestRow = {
+  id: string;
+  product: string;
+  from: string;
+  to: string;
+  quantity: number;
+  status: string;
+};
 
 export const BranchSearch = () => {
   const { showAlert } = useAlert();
@@ -123,21 +132,118 @@ export const BranchSearch = () => {
     };
   }, []);
 
-  const getProductLabel = (productId: string) =>
-    products.find(product => product.id === productId)?.name || productId;
+  const productLabels = useMemo(
+    () => new Map(products.map(product => [product.id, product.name] as const)),
+    [products]
+  );
+
+  const transferRequestRows = useMemo<TransferRequestRow[]>(
+    () =>
+      requests.map(request => ({
+        id: request.id,
+        product: productLabels.get(request.productId) ?? request.productId,
+        from: getBranchById(request.fromBranchId).code,
+        to: getBranchById(request.toBranchId).code,
+        quantity: request.quantity,
+        status: request.status,
+      })),
+    [requests, productLabels]
+  );
+
+  const inventoryColumns = useMemo<MRT_ColumnDef<IProduct>[]>(
+    () => [
+      {
+        accessorKey: 'name',
+        header: 'Product',
+        size: 220,
+        Cell: ({ cell }) => (
+          <Typography variant='body2' fontWeight={600}>
+            {cell.getValue<string>()}
+          </Typography>
+        ),
+      },
+      {
+        accessorKey: 'sku',
+        header: 'SKU',
+        size: 120,
+        Cell: ({ cell }) => cell.getValue<string>() || '—',
+      },
+      {
+        id: 'current',
+        header: 'Current',
+        size: 90,
+        accessorFn: row =>
+          availabilityMap.get(row.id)?.get(branchId) ?? row.stock ?? 0,
+      },
+      ...branches.map<MRT_ColumnDef<IProduct>>(branch => ({
+        id: `branch-${branch.id}`,
+        header: branch.code,
+        size: 90,
+        accessorFn: row => availabilityMap.get(row.id)?.get(branch.id) ?? 0,
+      })),
+      {
+        id: 'request',
+        header: 'Request',
+        size: 140,
+        Cell: ({ row }) => (
+          <Button
+            size='small'
+            variant='outlined'
+            onClick={() =>
+              setAvailabilityModal({ open: true, product: row.original })
+            }
+          >
+            Request
+          </Button>
+        ),
+      },
+    ],
+    [availabilityMap, branchId]
+  );
+
+  const requestColumns = useMemo<MRT_ColumnDef<TransferRequestRow>[]>(
+    () => [
+      { accessorKey: 'product', header: 'Product', size: 220 },
+      { accessorKey: 'from', header: 'From', size: 90 },
+      { accessorKey: 'to', header: 'To', size: 90 },
+      { accessorKey: 'quantity', header: 'Qty', size: 80 },
+      {
+        accessorKey: 'status',
+        header: 'Status',
+        size: 140,
+        Cell: ({ cell }) => (
+          <Chip
+            label={cell.getValue<string>()}
+            size='small'
+            variant='outlined'
+          />
+        ),
+      },
+    ],
+    []
+  );
+
+  const inventoryTable = useMaterialReactTable(
+    buildMrtOptions({
+      columns: inventoryColumns,
+      data: filtered,
+      enablePagination: filtered.length > 10,
+    })
+  );
+
+  const requestsTable = useMaterialReactTable(
+    buildMrtOptions({
+      columns: requestColumns,
+      data: transferRequestRows,
+      enablePagination: transferRequestRows.length > 8,
+    })
+  );
 
   return (
     <Box
       sx={{
         minHeight: '100%',
-        background: theme =>
-          `linear-gradient(180deg, ${alpha(
-            theme.palette.primary.main,
-            0.08
-          )} 0%, ${alpha(theme.palette.info.main, 0)} 45%)`,
-        '& .MuiTypography-root': {
-          fontFamily: '"Space Grotesk", "Helvetica", "Arial", sans-serif',
-        },
+        backgroundColor: 'background.default',
       }}
     >
       <Box
@@ -189,121 +295,14 @@ export const BranchSearch = () => {
           }}
         />
 
-        <Paper
-          elevation={0}
-          sx={{
-            borderRadius: 0,
-            border: '1px solid',
-            borderColor: 'divider',
-            overflow: 'hidden',
-          }}
-        >
-          <Table size='small'>
-            <TableHead>
-              <TableRow>
-                <TableCell>Product</TableCell>
-                <TableCell>SKU</TableCell>
-                <TableCell>Current</TableCell>
-                {branches.map(branch => (
-                  <TableCell key={branch.id}>{branch.code}</TableCell>
-                ))}
-                <TableCell align='right'>Request</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filtered.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4 + branches.length}>
-                    No products match your search.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filtered.map(product => {
-                  const stocks = availabilityMap.get(product.id) || new Map();
-                  return (
-                    <TableRow key={product.id}>
-                      <TableCell>{product.name}</TableCell>
-                      <TableCell>{product.sku || '—'}</TableCell>
-                      <TableCell>
-                        {stocks.get(branchId) ?? product.stock ?? 0}
-                      </TableCell>
-                      {branches.map(branch => (
-                        <TableCell key={branch.id}>
-                          {stocks.get(branch.id) ?? 0}
-                        </TableCell>
-                      ))}
-                      <TableCell align='right'>
-                        <Button
-                          size='small'
-                          variant='outlined'
-                          sx={{ borderRadius: 0 }}
-                          onClick={() =>
-                            setAvailabilityModal({ open: true, product })
-                          }
-                        >
-                          Request
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        </Paper>
+        <MaterialReactTable table={inventoryTable} />
 
-        <Paper
-          elevation={0}
-          sx={{
-            p: 2,
-            borderRadius: 0,
-            border: '1px solid',
-            borderColor: 'divider',
-          }}
-        >
-          <Typography variant='subtitle2' fontWeight={700} sx={{ mb: 2 }}>
+        <Stack spacing={1.5}>
+          <Typography variant='subtitle2' fontWeight={700}>
             Recent Transfer Requests
           </Typography>
-          <Table size='small'>
-            <TableHead>
-              <TableRow>
-                <TableCell>Product</TableCell>
-                <TableCell>From</TableCell>
-                <TableCell>To</TableCell>
-                <TableCell>Qty</TableCell>
-                <TableCell>Status</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {requests.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5}>No requests yet.</TableCell>
-                </TableRow>
-              ) : (
-                requests.map(request => (
-                  <TableRow key={request.id}>
-                    <TableCell>{getProductLabel(request.productId)}</TableCell>
-                    <TableCell>
-                      {getBranchById(request.fromBranchId).code}
-                    </TableCell>
-                    <TableCell>
-                      {getBranchById(request.toBranchId).code}
-                    </TableCell>
-                    <TableCell>{request.quantity}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={request.status}
-                        size='small'
-                        variant='outlined'
-                        sx={{ borderRadius: 0 }}
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </Paper>
+          <MaterialReactTable table={requestsTable} />
+        </Stack>
 
         <BranchAvailabilityModal
           open={availabilityModal.open}

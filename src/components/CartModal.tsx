@@ -88,8 +88,7 @@ export const CartModal: React.FC<CartModalProps> = ({
         '& .MuiDrawer-paper': {
           width: { xs: '100%', lg: '40%' },
           backgroundColor: theme.palette.background.paper,
-          borderRadius: 0,
-          boxShadow: 'none',
+          boxShadow: `0 16px 40px ${theme.palette.primary.dark}14`,
           zIndex: theme.zIndex.modal + 1000000,
         },
       }}
@@ -104,7 +103,6 @@ export const CartModal: React.FC<CartModalProps> = ({
             justifyContent: 'space-between',
             backgroundColor: theme.palette.primary.main,
             color: theme.palette.primary.contrastText,
-            borderRadius: 0,
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

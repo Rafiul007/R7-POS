@@ -167,11 +167,6 @@ export const AddStockModal = ({
           setErrors({});
         },
       }}
-      PaperProps={{
-        sx: {
-          borderRadius: 0,
-        },
-      }}
     >
       <DialogTitle
         sx={{
@@ -190,8 +185,7 @@ export const AddStockModal = ({
           <Box
             sx={{
               p: 2,
-              backgroundColor: '#f5f5f5',
-              borderRadius: 0,
+              backgroundColor: 'background.default',
               border: '1px solid',
               borderColor: 'divider',
             }}
@@ -216,44 +210,24 @@ export const AddStockModal = ({
               error={!!errors.name}
               helperText={errors.name}
               autoFocus
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 0,
-                },
-              }}
             />
             <TextField
               fullWidth
               label='SKU'
               value={form.sku}
               onChange={handleFieldChange('sku')}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 0,
-                },
-              }}
             />
             <TextField
               fullWidth
               label='Barcode'
               value={form.barcode}
               onChange={handleFieldChange('barcode')}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 0,
-                },
-              }}
             />
             <TextField
               fullWidth
               label='Category'
               value={form.category}
               onChange={handleFieldChange('category')}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 0,
-                },
-              }}
             />
           </Box>
 
@@ -273,11 +247,6 @@ export const AddStockModal = ({
               inputProps={{ min: 0, step: 0.01 }}
               error={!!errors.price}
               helperText={errors.price}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 0,
-                },
-              }}
             />
             <TextField
               fullWidth
@@ -288,11 +257,6 @@ export const AddStockModal = ({
               inputProps={{ min: 0, step: 0.01 }}
               error={!!errors.discountPrice}
               helperText={errors.discountPrice}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 0,
-                },
-              }}
             />
             <TextField
               fullWidth
@@ -303,11 +267,6 @@ export const AddStockModal = ({
               inputProps={{ min: 0, step: 1 }}
               error={!!errors.stock}
               helperText={errors.stock}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 0,
-                },
-              }}
             />
             <FormControlLabel
               control={
@@ -334,11 +293,6 @@ export const AddStockModal = ({
             onChange={handleFieldChange('image')}
             error={!!errors.image}
             helperText={errors.image}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 0,
-              },
-            }}
           />
 
           <TextField
@@ -348,11 +302,6 @@ export const AddStockModal = ({
             onChange={handleFieldChange('description')}
             multiline
             minRows={3}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 0,
-              },
-            }}
           />
         </Stack>
       </DialogContent>
@@ -368,10 +317,7 @@ export const AddStockModal = ({
         <Button
           onClick={handleClose}
           variant='outlined'
-          sx={{
-            textTransform: 'none',
-            borderRadius: 0,
-          }}
+          sx={{ textTransform: 'none' }}
         >
           Cancel
         </Button>
@@ -380,10 +326,7 @@ export const AddStockModal = ({
           variant='contained'
           startIcon={<AddCircleOutline />}
           disabled={!form.name.trim() || !form.price || !form.image.trim()}
-          sx={{
-            textTransform: 'none',
-            borderRadius: 0,
-          }}
+          sx={{ textTransform: 'none' }}
         >
           Add Product
         </Button>

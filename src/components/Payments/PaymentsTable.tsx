@@ -8,12 +8,12 @@ import {
   Chip,
 } from '@mui/material';
 import { Visibility, Replay } from '@mui/icons-material';
-import { alpha } from '@mui/material/styles';
 import {
   MaterialReactTable,
   useMaterialReactTable,
   type MRT_ColumnDef,
 } from 'material-react-table';
+import { buildMrtOptions } from '../../utils/materialReactTable';
 
 export interface PaymentRecord {
   id: string;
@@ -92,7 +92,6 @@ export const PaymentsTable = ({
             size='small'
             variant='outlined'
             sx={{
-              borderRadius: 0,
               fontWeight: 600,
               fontSize: '0.7rem',
               letterSpacing: '0.1em',
@@ -123,7 +122,6 @@ export const PaymentsTable = ({
             size='small'
             variant='outlined'
             sx={{
-              borderRadius: 0,
               fontWeight: 600,
               borderColor: 'divider',
               color: 'primary.main',
@@ -172,75 +170,15 @@ export const PaymentsTable = ({
     [onRefund, onView]
   );
 
-  const table = useMaterialReactTable({
-    columns,
-    data,
-    state: {
-      isLoading,
-    },
-    enableTopToolbar: false,
-    enableColumnActions: false,
-    enableSorting: true,
-    enablePagination: true,
-    enableColumnResizing: true,
-    columnResizeMode: 'onChange',
-    layoutMode: 'grid',
-    muiTablePaperProps: {
-      elevation: 0,
-      sx: {
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        borderRadius: 0,
-        border: '1px solid',
-        borderColor: 'divider',
-        backgroundColor: theme => alpha(theme.palette.background.paper, 0.92),
-        backdropFilter: 'blur(6px)',
-        '& .MuiTypography-root': {
-          fontFamily: '"Space Grotesk", "Helvetica", "Arial", sans-serif',
-        },
+  const table = useMaterialReactTable(
+    buildMrtOptions({
+      columns,
+      data,
+      state: {
+        isLoading,
       },
-    },
-    muiTableContainerProps: {
-      sx: {
-        flex: 1,
-        '& .mrt-table': {
-          borderCollapse: 'collapse',
-        },
-        '& .mrt-table-body-row:hover > td': {
-          backgroundColor: theme => alpha(theme.palette.primary.main, 0.04),
-        },
-      },
-    },
-    muiTableBodyCellProps: {
-      sx: {
-        py: 1.75,
-        px: 2,
-        borderBottom: '1px solid',
-        borderColor: 'divider',
-      },
-    },
-    muiTableHeadCellProps: {
-      sx: {
-        fontWeight: 600,
-        fontSize: '0.75rem',
-        letterSpacing: '0.12em',
-        textTransform: 'uppercase',
-        backgroundColor: 'transparent',
-        borderBottom: '1px solid',
-        borderColor: 'divider',
-        py: 2,
-        px: 2,
-        color: 'text.secondary',
-      },
-    },
-    muiPaginationProps: {
-      sx: {
-        borderTop: '1px solid',
-        borderColor: 'divider',
-      },
-    },
-  });
+    })
+  );
 
   return (
     <Paper

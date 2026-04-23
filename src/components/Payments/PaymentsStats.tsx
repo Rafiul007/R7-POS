@@ -32,16 +32,12 @@ const StatCard = ({
         display: 'flex',
         alignItems: 'center',
         gap: 2,
-        borderLeft: 'none',
-        borderColor: 'divider',
-        backgroundColor: 'transparent',
+        borderColor: alpha(theme.palette.primary.dark, 0.08),
+        backgroundColor: alpha(theme.palette.background.paper, 0.9),
         transition: 'transform 0.25s ease, border-color 0.25s ease',
-        '& .MuiTypography-root': {
-          fontFamily: '"Space Grotesk", "Helvetica", "Arial", sans-serif',
-        },
         '&:hover': {
           transform: 'translateY(-3px)',
-          borderColor: 'text.primary',
+          borderColor: alpha(theme.palette.primary.main, 0.22),
         },
       }}
     >
@@ -50,8 +46,7 @@ const StatCard = ({
           p: 1.25,
           backgroundColor: alpha(theme.palette.primary.main, 0.08),
           border: '1px solid',
-          borderColor: 'divider',
-          borderRadius: 0,
+          borderColor: alpha(theme.palette.primary.main, 0.12),
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
