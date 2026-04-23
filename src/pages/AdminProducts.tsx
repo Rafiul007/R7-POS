@@ -43,13 +43,14 @@ import { buildMrtOptions } from '../utils/materialReactTable';
 import {
   createEmptyVariant,
   createProductDefaultValues,
+  createProductFieldComponentMap,
   createProductSchema,
   getCreateProductFormSections,
   getCreateProductVariantFields,
   toCreateProductPayload,
   type CreateProductField,
   type CreateProductFormValues,
-} from './adminProductFormConfig';
+} from './createProductFormConstant';
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat('en-US', {
@@ -148,29 +149,40 @@ export const AdminProducts = () => {
     });
   }, [hasVariants, setValue, variantStockTotal]);
 
-  const renderCreateProductField = (field: CreateProductField) => (
-    <Grid key={field.name} size={field.grid}>
-      {field.type === 'select' ? (
-        <RhfSelect<CreateProductFormValues>
-          control={control}
-          name={field.name}
-          label={field.label}
-          options={field.options ?? []}
-          disabled={isCategoryLoading || field.options?.length === 0}
-        />
-      ) : (
-        <RhfTextField<CreateProductFormValues>
-          control={control}
-          name={field.name}
-          label={field.label}
-          type={field.inputType ?? 'text'}
-          placeholder={field.placeholder}
-          disabled={field.name === 'stock' && hasVariants}
-          fullWidth
-        />
-      )}
-    </Grid>
-  );
+  const productFieldRendererMap = {
+    RhfSelect: (field: CreateProductField) => (
+      <RhfSelect<CreateProductFormValues>
+        control={control}
+        name={field.name}
+        label={field.label}
+        options={field.options ?? []}
+        disabled={isCategoryLoading || field.options?.length === 0}
+      />
+    ),
+    RhfTextField: (field: CreateProductField) => (
+      <RhfTextField<CreateProductFormValues>
+        control={control}
+        name={field.name}
+        label={field.label}
+        type={field.inputType ?? 'text'}
+        placeholder={field.placeholder}
+        InputProps={{
+          readOnly: field.name === 'stock' && hasVariants,
+        }}
+        fullWidth
+      />
+    ),
+  };
+
+  const renderCreateProductField = (field: CreateProductField) => {
+    const componentKey = createProductFieldComponentMap[field.type];
+
+    return (
+      <Grid key={field.name} size={field.grid}>
+        {productFieldRendererMap[componentKey](field)}
+      </Grid>
+    );
+  };
 
   const renderVariantField = (
     field: ReturnType<typeof getCreateProductVariantFields>[number]

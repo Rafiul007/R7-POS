@@ -3,6 +3,7 @@ export const MESSAGES = {
     LOGIN_SUCCESS: 'Signed in successfully.',
     LOGOUT_SUCCESS: 'Signed out successfully.',
     LOGIN_FAILED: 'Invalid email or password.',
+    LOGIN_PERMISSION_DENIED: "You don't have permission to access this app.",
   },
   CART: {
     COUPON_INVALID: 'Invalid coupon code.',

@@ -8,3 +8,6 @@ export { Drawer } from './Drawer';
 export { BulkUpload } from './BulkUpload';
 export { Login } from './Login';
 export { Signup } from './Signup';
+export { AdminActions } from './AdminActions';
+export { AdminProducts } from './AdminProducts';
+export { AdminCatalog } from './AdminCatalog';

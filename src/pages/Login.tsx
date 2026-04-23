@@ -51,9 +51,15 @@ export const Login = () => {
           });
           navigate('/');
         },
-        onError: () => {
+        onError: error => {
+          const message =
+            error instanceof Error &&
+            error.message === MESSAGES.AUTH.LOGIN_PERMISSION_DENIED
+              ? error.message
+              : MESSAGES.AUTH.LOGIN_FAILED;
+
           showAlert({
-            message: MESSAGES.AUTH.LOGIN_FAILED,
+            message,
             severity: 'error',
           });
         },

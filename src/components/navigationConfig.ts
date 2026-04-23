@@ -3,6 +3,7 @@ export interface NavigationItem {
   iconName: string;
   path: string;
   roles?: string[];
+  employeeTypes?: string[];
 }
 
 export const navigationItems: NavigationItem[] = [
@@ -40,6 +41,12 @@ export const navigationItems: NavigationItem[] = [
     text: 'Bulk Upload',
     iconName: 'UploadFile',
     path: '/bulk-upload',
+  },
+  {
+    text: 'Admin Actions',
+    iconName: 'AdminPanelSettings',
+    path: '/admin/actions',
+    employeeTypes: ['manager', 'admin', 'super-admin'],
   },
 ];
 

@@ -26,6 +26,18 @@ interface UserMenuProps {
   onLogout: () => void;
 }
 
+const formatRole = (role: string | null) => {
+  if (!role) {
+    return 'Role unavailable';
+  }
+
+  return role
+    .split(/[\s_-]+/)
+    .filter(Boolean)
+    .map(part => `${part[0].toUpperCase()}${part.slice(1).toLowerCase()}`)
+    .join(' ');
+};
+
 export const UserMenu: React.FC<UserMenuProps> = ({
   anchorEl,
   onMenuOpen,
@@ -91,10 +103,10 @@ export const UserMenu: React.FC<UserMenuProps> = ({
               sx={{ display: { xs: 'none', sm: 'flex' }, textAlign: 'left' }}
             >
               <Typography variant='body2' sx={{ fontWeight: 700 }}>
-                Store Admin
+                {formatRole(role)}
               </Typography>
               <Typography variant='caption' sx={{ color: 'text.secondary' }}>
-                {role ? `${role[0].toUpperCase()}${role.slice(1)}` : 'Staff'}
+                Employee Role
               </Typography>
             </Stack>
             <KeyboardArrowDown

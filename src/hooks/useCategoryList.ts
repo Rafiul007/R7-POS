@@ -14,6 +14,7 @@ export type CategoryOption = {
 type CategoryListQueryParams = {
   page: number;
   limit: number;
+  search: string;
 };
 
 export const categoryKeys = {
@@ -32,9 +33,10 @@ export const mapCategoryToOption = (
 export const useCategories = (params: CategoryListParams = {}) => {
   const page = params.page ?? 1;
   const limit = params.limit ?? 20;
+  const search = params.search?.trim() ?? '';
 
   return useQuery<CategoryListData, Error>({
-    queryKey: categoryKeys.list({ page, limit }),
-    queryFn: () => getCategoryList({ page, limit }),
+    queryKey: categoryKeys.list({ page, limit, search }),
+    queryFn: () => getCategoryList({ page, limit, search }),
   });
 };

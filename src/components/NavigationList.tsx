@@ -17,6 +17,7 @@ import {
   AccountBalanceWallet,
   UploadFile,
   Search,
+  AdminPanelSettings,
 } from '@mui/icons-material';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../auth';
@@ -34,6 +35,7 @@ const iconMap = {
   AccountBalanceWallet,
   UploadFile,
   Search,
+  AdminPanelSettings,
 };
 
 export const NavigationList: React.FC<NavigationListProps> = ({
@@ -41,8 +43,9 @@ export const NavigationList: React.FC<NavigationListProps> = ({
 }) => {
   const theme = useTheme();
   const location = useLocation();
-  const { role } = useAuth();
+  const { employeeType, role } = useAuth();
   const normalizedRole = role?.toLowerCase();
+  const normalizedEmployeeType = employeeType?.toLowerCase();
 
   return (
     <Box sx={{ px: 1.5, py: 2 }}>
@@ -62,8 +65,15 @@ export const NavigationList: React.FC<NavigationListProps> = ({
         {navigationItems
           .filter(
             item =>
-              !item.roles ||
-              item.roles.some(allowedRole => allowedRole === normalizedRole)
+              (!item.roles ||
+                item.roles.some(
+                  allowedRole => allowedRole === normalizedRole
+                )) &&
+              (!item.employeeTypes ||
+                item.employeeTypes.some(
+                  allowedEmployeeType =>
+                    allowedEmployeeType === normalizedEmployeeType
+                ))
           )
           .map(item => {
             const IconComponent =

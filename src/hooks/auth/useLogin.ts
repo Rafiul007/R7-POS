@@ -12,6 +12,7 @@ export const useLogin = () => {
       setAuthTokens({
         accessToken: data.accessToken,
         role: data.role,
+        employeeType: data.employeeType,
       });
       queryClient.invalidateQueries();
     },

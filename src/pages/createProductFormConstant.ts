@@ -37,6 +37,11 @@ export type CreateProductField = {
   };
 };
 
+export const createProductFieldComponentMap = {
+  text: 'RhfTextField',
+  select: 'RhfSelect',
+} as const;
+
 export type CreateProductFormSection = {
   id: 'basic' | 'details';
   title: string;
@@ -232,12 +237,15 @@ export const createEmptyVariant = (): CreateProductVariantFormValues => ({
   stock: 0,
 });
 
+const toNumber = (value: number | string) => Number(value);
+const toInteger = (value: number | string) => Math.trunc(Number(value));
+
 export const toCreateProductPayload = (
   values: CreateProductFormValues
 ): CreateProductPayload => ({
   name: values.name.trim(),
-  price: values.price,
-  stock: values.stock,
+  price: toNumber(values.price),
+  stock: toInteger(values.stock),
   category: values.category,
   images: [values.imageUrl.trim()],
   tags: values.tagsInput
@@ -247,7 +255,7 @@ export const toCreateProductPayload = (
   variants: values.variants.map(variant => ({
     name: variant.name.trim(),
     value: variant.value.trim(),
-    additionalPrice: variant.additionalPrice,
-    stock: variant.stock,
+    additionalPrice: toNumber(variant.additionalPrice),
+    stock: toInteger(variant.stock),
   })),
 });

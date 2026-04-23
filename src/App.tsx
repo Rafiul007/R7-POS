@@ -11,8 +11,17 @@ import {
   BulkUpload,
   Login,
   Signup,
+  AdminActions,
+  AdminProducts,
+  AdminCatalog,
 } from './pages';
 import { AuthProvider, ProtectedRoute, useAuth } from './auth';
+
+const ADMIN_ACTION_EMPLOYEE_TYPES = new Set([
+  'manager',
+  'admin',
+  'super-admin',
+]);
 
 function App() {
   return (
@@ -27,13 +36,21 @@ function App() {
 export default App;
 
 const AppRoutes = () => {
-  const { isAuthenticated } = useAuth();
+  const { employeeType, isAuthenticated } = useAuth();
+  const canAccessAdminActions = employeeType
+    ? ADMIN_ACTION_EMPLOYEE_TYPES.has(employeeType.toLowerCase())
+    : false;
 
   const withDashboard = (element: React.ReactNode) => (
     <ProtectedRoute>
       <DashboardLayout>{element}</DashboardLayout>
     </ProtectedRoute>
   );
+
+  const withAdminActionAccess = (element: React.ReactNode) =>
+    withDashboard(
+      canAccessAdminActions ? element : <Navigate to='/' replace />
+    );
 
   return (
     <Routes>
@@ -53,6 +70,18 @@ const AppRoutes = () => {
       <Route path='/drawer' element={withDashboard(<Drawer />)} />
       <Route path='/bulk-upload' element={withDashboard(<BulkUpload />)} />
       <Route path='/cart-payment' element={withDashboard(<CartPayment />)} />
+      <Route
+        path='/admin/actions'
+        element={withAdminActionAccess(<AdminActions />)}
+      />
+      <Route
+        path='/admin/actions/products'
+        element={withAdminActionAccess(<AdminProducts />)}
+      />
+      <Route
+        path='/admin/actions/catalog'
+        element={withAdminActionAccess(<AdminCatalog />)}
+      />
       <Route
         path='*'
         element={<Navigate to={isAuthenticated ? '/' : '/login'} replace />}
