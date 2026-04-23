@@ -10,6 +10,7 @@ type LoginPayload = {
 
 type LoginResponse = {
   accessToken: string;
+  role?: string | null;
 };
 
 // login function
@@ -20,12 +21,13 @@ export const login = async ({
   const res = await axiosInstance.post(LOGIN_URL, { email, password });
   const payload = res.data?.data ?? res.data;
   const accessToken = payload.accessToken ?? payload.access_token;
+  const role = payload.role ?? payload.user?.role ?? null;
 
   if (!accessToken) {
     throw new Error('Login response missing access token.');
   }
 
-  return { accessToken };
+  return { accessToken, role };
 };
 
 export const logout = async (): Promise<void> => {

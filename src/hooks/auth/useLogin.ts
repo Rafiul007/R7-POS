@@ -11,6 +11,7 @@ export const useLogin = () => {
     onSuccess: data => {
       setAuthTokens({
         accessToken: data.accessToken,
+        role: data.role,
       });
       queryClient.invalidateQueries();
     },

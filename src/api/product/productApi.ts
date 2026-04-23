@@ -1,6 +1,8 @@
 import axiosInstance from '../../lib/axiosInstance';
 
 const PRODUCT_LIST_URL = 'product-catalog/products';
+const PRODUCT_CREATE_URL = 'product-catalog/products';
+const CATEGORY_LIST_URL = 'product-catalog/categories';
 
 export type ProductListParams = {
   page?: number;
@@ -63,6 +65,26 @@ export type ProductListPagination = {
 export type ProductListData = {
   products: Product[];
   pagination: ProductListPagination;
+};
+
+export type CategoryListParams = {
+  page?: number;
+  limit?: number;
+};
+
+export type CategoryListData = {
+  categories: ProductCategory[];
+  pagination: ProductListPagination;
+};
+
+export type CreateProductPayload = {
+  name: string;
+  price: number;
+  stock: number;
+  category: string;
+  images: string[];
+  tags: string[];
+  variants: ProductVariant[];
 };
 
 type ProductListResponse = {

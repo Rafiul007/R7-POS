@@ -19,6 +19,7 @@ import {
   Search,
 } from '@mui/icons-material';
 import { useLocation } from 'react-router-dom';
+import { useAuth } from '../auth';
 import { navigationItems } from './navigationConfig';
 
 interface NavigationListProps {
@@ -40,6 +41,8 @@ export const NavigationList: React.FC<NavigationListProps> = ({
 }) => {
   const theme = useTheme();
   const location = useLocation();
+  const { role } = useAuth();
+  const normalizedRole = role?.toLowerCase();
 
   return (
     <Box sx={{ px: 1.5, py: 2 }}>

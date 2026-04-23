@@ -2,6 +2,7 @@ export interface NavigationItem {
   text: string;
   iconName: string;
   path: string;
+  roles?: string[];
 }
 
 export const navigationItems: NavigationItem[] = [
